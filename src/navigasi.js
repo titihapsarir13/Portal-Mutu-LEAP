@@ -14,6 +14,9 @@ export function keHalaman(id) {
   window.location.hash = '#' + id;
 }
 
+export function mundur() { window.history.back(); }
+export function maju() { window.history.forward(); }
+
 export function useHash(defaultId) {
   const [hash, setHash] = useState(() => bacaHash() || terakhir() || defaultId);
   useEffect(() => {
