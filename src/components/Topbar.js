@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { APP_VERSION } from '../config';
 
-export default function Topbar({ judul, sub, me, onRefresh, onBurger, onKeluar }) {
+export default function Topbar({ judul, sub, me, onRefresh, onBurger, onKeluar, onMundur, onMaju, onGantiSandi }) {
   const [buka, setBuka] = useState(false);
   const [diag, setDiag] = useState(null);
   const ref = useRef(null);
@@ -27,6 +27,10 @@ export default function Topbar({ judul, sub, me, onRefresh, onBurger, onKeluar }
   return (
     <div className="top">
       <button className="burger" onClick={onBurger} aria-label="Menu">☰</button>
+      <div className="navpair">
+        <button className="navbtn" onClick={onMundur} aria-label="Kembali" title="Kembali">◀</button>
+        <button className="navbtn" onClick={onMaju} aria-label="Maju" title="Maju">▶</button>
+      </div>
       <div className="thead"><h1>{judul}</h1>{sub && <div className="sub">{sub}</div>}</div>
       <div className="spacer" />
       <div className="who"><span className="ava">{inisial}</span><span className="who-n">{me ? (me.divisi || me.nama) : ''}</span></div>
@@ -35,6 +39,7 @@ export default function Topbar({ judul, sub, me, onRefresh, onBurger, onKeluar }
         {buka && (
           <div className="menu">
             <div className="mi" onClick={() => { setBuka(false); onRefresh(); }}>↻ Refresh data</div>
+            <div className="mi" onClick={() => { setBuka(false); onGantiSandi(); }}>🔑 Ganti sandi</div>
             <div className="mi" onClick={jalankanDiag}>🩺 Diagnosa</div>
             <div className="msep" />
             <div className="mi" onClick={() => { setBuka(false); onKeluar(); }}>⎋ Keluar</div>
