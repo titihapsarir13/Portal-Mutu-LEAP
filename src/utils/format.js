@@ -35,3 +35,31 @@ function teksKontras(hex) {
 export function norm(s) {
   return String(s == null ? '' : s).toLowerCase().replace(/\s+/g, ' ').trim();
 }
+
+// Kenali jenis tautan dokumen dari URL → {jenis, ikon, label}
+export function jenisTautan(url) {
+  const u = String(url || '').trim();
+  if (!u) return null;
+  const low = u.toLowerCase();
+  const host = (low.match(/^https?:\/\/([^/]+)/) || [])[1] || '';
+  const test = (re) => re.test(low);
+  if (test(/docs\.google\.com\/document/) ) return { jenis: 'gdoc', ikon: '📄', label: 'Google Docs' };
+  if (test(/docs\.google\.com\/spreadsheets/)) return { jenis: 'gsheet', ikon: '📊', label: 'Google Sheets' };
+  if (test(/docs\.google\.com\/presentation/)) return { jenis: 'gslide', ikon: '📽️', label: 'Google Slides' };
+  if (test(/drive\.google\.com/)) return { jenis: 'gdrive', ikon: '🗂️', label: 'Google Drive' };
+  if (test(/\.pdf($|\?)/)) return { jenis: 'pdf', ikon: '📕', label: 'PDF' };
+  if (test(/\.(docx?|rtf)($|\?)/)) return { jenis: 'doc', ikon: '📄', label: 'Word' };
+  if (test(/\.(xlsx?|csv)($|\?)/)) return { jenis: 'xls', ikon: '📊', label: 'Excel' };
+  if (test(/\.(pptx?)($|\?)/)) return { jenis: 'ppt', ikon: '📽️', label: 'PowerPoint' };
+  if (test(/\.(png|jpe?g|gif|webp|svg)($|\?)/)) return { jenis: 'img', ikon: '🖼️', label: 'Gambar' };
+  if (test(/^https?:\/\//)) return { jenis: 'web', ikon: '🔗', label: host || 'Web' };
+  return null;
+}
+
+export function pastikanUrl(u) {
+  const s = String(u || '').trim();
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^www\./i.test(s) || /\.[a-z]{2,}(\/|$)/i.test(s)) return 'https://' + s;
+  return s;
+}
