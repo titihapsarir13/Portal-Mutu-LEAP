@@ -5,6 +5,7 @@ import { usePortal } from './hooks/usePortal';
 import { useHash, keHalaman, mundur, maju } from './navigasi';
 import Gate from './components/Gate';
 import Sidebar from './components/Sidebar';
+import MainNav, { bagianHalaman, rincianMenu } from './components/MainNav';
 import Topbar from './components/Topbar';
 import Dashboard from './pages/Dashboard';
 import ModulTabel from './pages/ModulTabel';
@@ -14,19 +15,19 @@ import Admin from './pages/Admin';
 import GantiSandi from './pages/GantiSandi';
 import Beranda from './pages/Beranda';
 
+const TANPA_LOGIN = true;
+const PENGUNJUNG = Object.freeze({ nama: 'Pengunjung', divisi: 'Umum', peran: 'Pengunjung' });
 const ME_KEY = STORAGE_KEY + '.me';
 const COLL_KEY = STORAGE_KEY + '.collapsed';
-const GRUP_KEY = STORAGE_KEY + '.grupTutup';
 function bacaMe() { try { return JSON.parse(localStorage.getItem(ME_KEY) || 'null'); } catch (e) { return null; } }
-function bacaGrup() { try { return JSON.parse(localStorage.getItem(GRUP_KEY) || '{}') || {}; } catch (e) { return {}; } }
 
 export default function App() {
-  const [me, setMe] = useState(bacaMe);
+  const [me, setMe] = useState(() => TANPA_LOGIN ? PENGUNJUNG : bacaMe());
   const portal = usePortal(!!me && !(me && me.harusGanti));
   const hash = useHash('beranda');
   const [drawer, setDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem(COLL_KEY) === '1'; } catch (e) { return false; } });
-  const [grupTutup, setGrupTutup] = useState(bacaGrup);
+  const [halamanTerakhir, setHalamanTerakhir] = useState({});
   const [toast, setToast] = useState(null);
   const [gantiManual, setGantiManual] = useState(false);
 
@@ -34,7 +35,6 @@ export default function App() {
   function keluar() { try { localStorage.removeItem(ME_KEY); } catch (e) {} setMe(null); }
   function tampilToast(pesan, jenis) { setToast({ pesan, jenis }); setTimeout(() => setToast(null), 3500); }
   function toggleCollapse() { setCollapsed((c) => { const n = !c; try { localStorage.setItem(COLL_KEY, n ? '1' : '0'); } catch (e) {} return n; }); }
-  function toggleGrup(key) { setGrupTutup((g) => { const n = { ...g, [key]: !g[key] }; try { localStorage.setItem(GRUP_KEY, JSON.stringify(n)); } catch (e) {} return n; }); }
 
   useEffect(() => { setDrawer(false); }, [hash]);
 
@@ -43,7 +43,7 @@ export default function App() {
 
   const akses = (data && data.akses) || {};
   function bolehLihat(id) { if (isSA) return true; const r = akses[me.divisi] && akses[me.divisi][id]; return r ? r.lihat : true; }
-  function bolehEdit(id) { if (isSA) return true; const r = akses[me.divisi] && akses[me.divisi][id]; return r ? r.edit : true; }
+  function bolehEdit(id) { if (TANPA_LOGIN) return false; if (isSA) return true; const r = akses[me.divisi] && akses[me.divisi][id]; return r ? r.edit : true; }
 
   const modulTampil = useMemo(() => {
     if (!me) return [];
@@ -61,12 +61,26 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me, data]);
 
+  const bagian = bagianHalaman(hash, modulTampil);
+  useEffect(() => { setHalamanTerakhir((v) => v[bagian] === hash ? v : { ...v, [bagian]: hash }); }, [hash, bagian]);
+  function pilihUtama(menu) {
+    const items = rincianMenu(menu.id, modulTampil, isSA);
+    const terakhir = halamanTerakhir[menu.id];
+    keHalaman(items.some((x) => x.id === (terakhir || '').split('~')[0]) ? terakhir : (items[0] || {}).id || menu.awal);
+  }
+  function toggleSidebar() { if (window.matchMedia('(max-width: 900px)').matches) setDrawer((v) => !v); else toggleCollapse(); }
+
   if (!me) return <Gate onMasuk={masuk} />;
   if (me.harusGanti) {
     return <GantiSandi me={me} wajib onSelesai={() => { const m = { ...me, harusGanti: false }; masuk(m); tampilToast('Sandi berhasil diganti.', 'ok'); }} />;
   }
 
-  const modulAktif = hash.indexOf('modul-') === 0 ? modulTampil.filter((m) => ('modul-' + m.id) === hash)[0] : null;
+  const halamanDasar = hash.split('~')[0];
+  let bagianNaskah = '';
+  try { bagianNaskah = halamanDasar === 'modul-naskah' ? decodeURIComponent(hash.split('~')[1] || '') : ''; } catch (e) {}
+  const modulAktif = halamanDasar.indexOf('modul-') === 0 ? modulTampil.find((m) => ('modul-' + m.id) === halamanDasar) : null;
+  const dataAktif = data && modulAktif && data.data[modulAktif.id];
+  const dataTampil = bagianNaskah && dataAktif ? { ...dataAktif, baris: dataAktif.baris.filter((b) => String(b.c[2] || '').trim() === bagianNaskah) } : dataAktif;
   let judul = 'Dashboard', sub = 'Ringkasan progres persiapan akreditasi';
   if (hash === 'beranda') { judul = 'Beranda & Panduan'; sub = 'Mulai dari sini — alur SPMI menuju EKLK & akreditasi'; }
   else if (hash === 'alur') { judul = 'Alur Kerja'; sub = 'Peta alur garis besar persiapan akreditasi'; }
@@ -74,16 +88,18 @@ export default function App() {
   else if (modulAktif) { judul = modulAktif.judul; sub = modulAktif.deskripsi; }
 
   return (
-    <div className={'app' + (drawer ? ' drawer-open' : '')}>
+    <div className={'app app-topnav' + (drawer ? ' drawer-open' : '')}>
+      <MainNav app={data && data.app} aktif={bagian} onPilih={pilihUtama} onMundur={mundur} onMaju={maju} onToggleSidebar={toggleSidebar} />
+      <div className="workspace">
       {drawer && <div className="scrim" onClick={() => setDrawer(false)} />}
-      <Sidebar app={data && data.app} modul={modulTampil} aktif={hash} isSA={isSA} collapsed={collapsed}
+      <Sidebar key={bagian} app={data && data.app} modul={modulTampil} naskahBaris={data && data.data.naskah && data.data.naskah.baris} bagian={bagian} aktif={hash} isSA={isSA} collapsed={collapsed}
         onPilih={(id) => keHalaman(id)} drawer={drawer} onTutup={() => setDrawer(false)}
-        onToggleCollapse={toggleCollapse} grupTutup={grupTutup} onToggleGrup={toggleGrup} />
+        onToggleCollapse={toggleCollapse} />
       <div className="main">
-        <Topbar judul={judul} sub={sub} me={me}
+        <Topbar judul={judul} sub={bagianNaskah || sub} me={me}
           onRefresh={async () => { await portal.refresh(); tampilToast('Data diperbarui.', 'ok'); }}
-          onBurger={() => setDrawer(true)} onKeluar={keluar}
-          onMundur={mundur} onMaju={maju} onGantiSandi={() => setGantiManual(true)} />
+          onBurger={() => setDrawer(true)} onKeluar={TANPA_LOGIN ? undefined : keluar}
+          onMundur={mundur} onMaju={maju} onGantiSandi={TANPA_LOGIN ? undefined : () => setGantiManual(true)} />
 
         {portal.status === 'muat' && !data && hash !== 'beranda' && <div className="body"><div className="kosong">Memuat…</div></div>}
         {portal.status === 'galat' && !data && (
@@ -98,16 +114,18 @@ export default function App() {
           ? <Admin me={me} onToast={tampilToast} onRefresh={portal.refresh} />
           : <div className="body"><div className="galat"><b>Halaman khusus Super Admin.</b></div></div>)}
         {data && modulAktif && modulAktif.id === 'form' && (
-          <RegistriPos modul={modulAktif} moddata={data.data[modulAktif.id]} opsi={data.opsi} me={me}
+          <RegistriPos modul={modulAktif} moddata={dataTampil} opsi={data.opsi} me={me}
             appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)} registriPos={data.registriPos} onRefresh={portal.refresh}
             onPatch={portal.patchSel} onToast={tampilToast} />
         )}
         {data && modulAktif && modulAktif.id !== 'form' && (
-          <ModulTabel modul={modulAktif} moddata={data.data[modulAktif.id]} opsi={data.opsi} me={me}
+          <ModulTabel modul={modulAktif} moddata={dataTampil} opsi={data.opsi} me={me}
             appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)}
             onPatch={portal.patchSel} onTambah={portal.tambahLokal} onHapus={portal.hapusLokal} onToast={tampilToast} />
         )}
         {data && hash.indexOf('modul-') === 0 && !modulAktif && <div className="body"><div className="kosong">Modul tidak tersedia untuk Anda.</div></div>}
+      </div>
+
       </div>
 
       {gantiManual && <GantiSandi me={me} onSelesai={() => { setGantiManual(false); tampilToast('Sandi diperbarui.', 'ok'); }} onBatal={() => setGantiManual(false)} />}

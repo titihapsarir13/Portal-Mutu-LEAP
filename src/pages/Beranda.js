@@ -49,7 +49,7 @@ export default function Beranda({ app, me, onPilih }) {
       </div>
 
       <div className="bar bar-info" style={{ marginTop: 14 }}>
-        <span>💡 Tip: menu kiri dikelompokkan per tahap dan bisa <b>dibuka/ditutup</b>; tombol <b>‹</b> di pojok menu untuk <b>menciutkan</b> jadi ikon saja saat butuh ruang lebih luas.</span>
+        <span>💡 Tip: pilih <b>menu utama di atas</b> untuk berpindah tahap. Rincian menu tampil di kiri; klik tombol <b>‹</b> untuk menutup panel atau <b>▥</b> untuk membukanya kembali.</span>
       </div>
     </div>
   );
