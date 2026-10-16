@@ -99,7 +99,7 @@ export default function App() {
           : <div className="body"><div className="galat"><b>Halaman khusus Super Admin.</b></div></div>)}
         {data && modulAktif && modulAktif.id === 'form' && (
           <RegistriPos modul={modulAktif} moddata={data.data[modulAktif.id]} opsi={data.opsi} me={me}
-            appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)} registriPos={data.registriPos}
+            appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)} registriPos={data.registriPos} onRefresh={portal.refresh}
             onPatch={portal.patchSel} onToast={tampilToast} />
         )}
         {data && modulAktif && modulAktif.id !== 'form' && (
