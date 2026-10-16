@@ -55,7 +55,7 @@ export function usePortal(aktif) {
       if (!s.data) return s;
       const md = s.data.data[modulId];
       if (!md) return s;
-      const baris = md.baris.map((b) => b.id === id ? { ...b, c: { ...b.c, [kolom]: nilai } } : b);
+      const baris = md.baris.map((b) => b.id === id ? { ...b, c: { ...b.c, [kolom]: nilai }, ...(b.links ? { links: { ...b.links, [kolom]: [] } } : {}) } : b);
       return { ...s, data: { ...s.data, data: { ...s.data.data, [modulId]: { ...md, baris } } } };
     });
   }, []);
