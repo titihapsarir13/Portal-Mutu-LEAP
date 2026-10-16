@@ -50,5 +50,13 @@ export const api = {
   login: (nama, pin) => post('login', { nama, pin }),
   update: (b) => post('update', b),
   create: (b) => post('create', b),
-  archive: (b) => post('archive', b)
+  archive: (b) => post('archive', b),
+  perbaruiDraft: (b) => post('perbaruiDraft', b),
+  sinkronLinkForm: (b) => post('sinkronLinkForm', b),
+  adminData: (b) => post('adminData', b),
+  gantiSandi: (b) => post('gantiSandi', b),
+  resetSandi: (b) => post('resetSandi', b),
+  setAkses: (b) => post('setAkses', b),
+  setAktif: (b) => post('setAktif', b),
+  setPeran: (b) => post('setPeran', b)
 };
