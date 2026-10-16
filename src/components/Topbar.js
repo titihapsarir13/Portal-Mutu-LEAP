@@ -39,10 +39,9 @@ export default function Topbar({ judul, sub, me, onRefresh, onBurger, onKeluar, 
         {buka && (
           <div className="menu">
             <div className="mi" onClick={() => { setBuka(false); onRefresh(); }}>↻ Refresh data</div>
-            <div className="mi" onClick={() => { setBuka(false); onGantiSandi(); }}>🔑 Ganti sandi</div>
+            {onGantiSandi && <div className="mi" onClick={() => { setBuka(false); onGantiSandi(); }}>🔑 Ganti sandi</div>}
             <div className="mi" onClick={jalankanDiag}>🩺 Diagnosa</div>
-            <div className="msep" />
-            <div className="mi" onClick={() => { setBuka(false); onKeluar(); }}>⎋ Keluar</div>
+            {onKeluar && <><div className="msep" /><div className="mi" onClick={() => { setBuka(false); onKeluar(); }}>⎋ Keluar</div></>}
           </div>
         )}
       </div>
