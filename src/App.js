@@ -1,117 +1,68 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { STORAGE_KEY } from './config';
-import { api } from './api';
-import { usePortal } from './hooks/usePortal';
-import { useHash, keHalaman, mundur, maju } from './navigasi';
-import Gate from './components/Gate';
-import Sidebar from './components/Sidebar';
-import Topbar from './components/Topbar';
-import Dashboard from './pages/Dashboard';
-import ModulTabel from './pages/ModulTabel';
-import RegistriPos from './pages/RegistriPos';
-import AlurMap from './pages/AlurMap';
-import Admin from './pages/Admin';
-import GantiSandi from './pages/GantiSandi';
-import Beranda from './pages/Beranda';
+import React, { useEffect, useRef, useState } from 'react';
+import { api } from '../api';
+import { APP_VERSION } from '../config';
 
-const ME_KEY = STORAGE_KEY + '.me';
-const COLL_KEY = STORAGE_KEY + '.collapsed';
-const GRUP_KEY = STORAGE_KEY + '.grupTutup';
-function bacaMe() { try { return JSON.parse(localStorage.getItem(ME_KEY) || 'null'); } catch (e) { return null; } }
-function bacaGrup() { try { return JSON.parse(localStorage.getItem(GRUP_KEY) || '{}') || {}; } catch (e) { return {}; } }
+export default function Topbar({ judul, sub, me, onRefresh, onBurger, onKeluar, onMundur, onMaju, onGantiSandi }) {
+  const [buka, setBuka] = useState(false);
+  const [diag, setDiag] = useState(null);
+  const ref = useRef(null);
 
-export default function App() {
-  const [me, setMe] = useState(bacaMe);
-  const portal = usePortal(!!me && !(me && me.harusGanti));
-  const hash = useHash('beranda');
-  const [drawer, setDrawer] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem(COLL_KEY) === '1'; } catch (e) { return false; } });
-  const [grupTutup, setGrupTutup] = useState(bacaGrup);
-  const [toast, setToast] = useState(null);
-  const [gantiManual, setGantiManual] = useState(false);
+  useEffect(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setBuka(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
 
-  function masuk(m) { try { localStorage.setItem(ME_KEY, JSON.stringify(m)); } catch (e) {} setMe(m); }
-  function keluar() { try { localStorage.removeItem(ME_KEY); } catch (e) {} setMe(null); }
-  function tampilToast(pesan, jenis) { setToast({ pesan, jenis }); setTimeout(() => setToast(null), 3500); }
-  function toggleCollapse() { setCollapsed((c) => { const n = !c; try { localStorage.setItem(COLL_KEY, n ? '1' : '0'); } catch (e) {} return n; }); }
-  function toggleGrup(key) { setGrupTutup((g) => { const n = { ...g, [key]: !g[key] }; try { localStorage.setItem(GRUP_KEY, JSON.stringify(n)); } catch (e) {} return n; }); }
-
-  useEffect(() => { setDrawer(false); }, [hash]);
-
-  const data = portal.data;
-  const isSA = !!(me && me.peran === 'SA');
-
-  const akses = (data && data.akses) || {};
-  function bolehLihat(id) { if (isSA) return true; const r = akses[me.divisi] && akses[me.divisi][id]; return r ? r.lihat : true; }
-  function bolehEdit(id) { if (isSA) return true; const r = akses[me.divisi] && akses[me.divisi][id]; return r ? r.edit : true; }
-
-  const modulTampil = useMemo(() => {
-    if (!me) return [];
-    const semua = (data && data.modul) || [];
-    const div = (me.divisi || '').toLowerCase();
-    const sup = me.peran === 'SA';
-    return semua
-      .filter((m) => {
-        if (!bolehLihat(m.id)) return false;
-        const d = (m.divisi || 'Semua').toLowerCase();
-        if (sup || d === 'semua' || !d) return true;
-        return d.split(/[|,]/).map((x) => x.trim()).some((x) => x && (div.indexOf(x) >= 0 || x.indexOf(div) >= 0));
-      })
-      .map((m) => ({ ...m, _jml: data && data.data[m.id] ? data.data[m.id].baris.length : undefined }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [me, data]);
-
-  if (!me) return <Gate onMasuk={masuk} />;
-  if (me.harusGanti) {
-    return <GantiSandi me={me} wajib onSelesai={() => { const m = { ...me, harusGanti: false }; masuk(m); tampilToast('Sandi berhasil diganti.', 'ok'); }} />;
+  async function jalankanDiag() {
+    setBuka(false); setDiag({ status: 'cek' });
+    try {
+      const p = await api.ping();
+      const v = await api.versi();
+      setDiag({ status: 'ok', versiKode: p && p.data && p.data.versiKode, versiData: v && v.data && v.data.versi });
+    } catch (e) { setDiag({ status: 'galat', pesan: e.message }); }
   }
 
-  const modulAktif = hash.indexOf('modul-') === 0 ? modulTampil.filter((m) => ('modul-' + m.id) === hash)[0] : null;
-  let judul = 'Dashboard', sub = 'Ringkasan progres persiapan akreditasi';
-  if (hash === 'beranda') { judul = 'Beranda & Panduan'; sub = 'Mulai dari sini — alur SPMI menuju EKLK & akreditasi'; }
-  else if (hash === 'alur') { judul = 'Alur Kerja'; sub = 'Peta alur garis besar persiapan akreditasi'; }
-  else if (hash === 'admin') { judul = 'Admin & Akses'; sub = 'Kelola pengguna, sandi, dan hak akses'; }
-  else if (modulAktif) { judul = modulAktif.judul; sub = modulAktif.deskripsi; }
+  const inisial = (me && me.nama ? me.nama.replace(/[^A-Za-z ]/g, '').split(' ').map((x) => x[0]).slice(0, 2).join('') : '?').toUpperCase();
 
   return (
-    <div className={'app' + (drawer ? ' drawer-open' : '')}>
-      {drawer && <div className="scrim" onClick={() => setDrawer(false)} />}
-      <Sidebar app={data && data.app} modul={modulTampil} aktif={hash} isSA={isSA} collapsed={collapsed}
-        onPilih={(id) => keHalaman(id)} drawer={drawer} onTutup={() => setDrawer(false)}
-        onToggleCollapse={toggleCollapse} grupTutup={grupTutup} onToggleGrup={toggleGrup} />
-      <div className="main">
-        <Topbar judul={judul} sub={sub} me={me}
-          onRefresh={async () => { await portal.refresh(); tampilToast('Data diperbarui.', 'ok'); }}
-          onBurger={() => setDrawer(true)} onKeluar={keluar}
-          onMundur={mundur} onMaju={maju} onGantiSandi={() => setGantiManual(true)} />
-
-        {portal.status === 'muat' && !data && hash !== 'beranda' && <div className="body"><div className="kosong">Memuat…</div></div>}
-        {portal.status === 'galat' && !data && (
-          <div className="body"><div className="galat"><b>Tidak dapat memuat data.</b><div>{portal.pesan}</div>
-            {!api.sudahDiatur() && <div className="hint">API_URL belum diatur di config.js. Lihat PANDUAN langkah G.</div>}</div></div>
-        )}
-
-        {hash === 'beranda' && <Beranda app={data && data.app} me={me} onPilih={(id) => keHalaman(id)} />}
-        {data && hash === 'dashboard' && <Dashboard data={data} onPilih={(id) => keHalaman(id)} />}
-        {data && hash === 'alur' && <AlurMap modul={modulTampil} onPilih={(id) => keHalaman(id)} />}
-        {data && hash === 'admin' && (isSA
-          ? <Admin me={me} onToast={tampilToast} onRefresh={portal.refresh} />
-          : <div className="body"><div className="galat"><b>Halaman khusus Super Admin.</b></div></div>)}
-        {data && modulAktif && modulAktif.id === 'form' && (
-          <RegistriPos modul={modulAktif} moddata={data.data[modulAktif.id]} opsi={data.opsi} me={me}
-            appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)} registriPos={data.registriPos} onRefresh={portal.refresh}
-            onPatch={portal.patchSel} onToast={tampilToast} />
-        )}
-        {data && modulAktif && modulAktif.id !== 'form' && (
-          <ModulTabel modul={modulAktif} moddata={data.data[modulAktif.id]} opsi={data.opsi} me={me}
-            appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)}
-            onPatch={portal.patchSel} onTambah={portal.tambahLokal} onHapus={portal.hapusLokal} onToast={tampilToast} />
-        )}
-        {data && hash.indexOf('modul-') === 0 && !modulAktif && <div className="body"><div className="kosong">Modul tidak tersedia untuk Anda.</div></div>}
+    <div className="top">
+      <button className="burger" onClick={onBurger} aria-label="Menu">☰</button>
+      <div className="navpair">
+        <button className="navbtn" onClick={onMundur} aria-label="Kembali" title="Kembali">◀</button>
+        <button className="navbtn" onClick={onMaju} aria-label="Maju" title="Maju">▶</button>
       </div>
-
-      {gantiManual && <GantiSandi me={me} onSelesai={() => { setGantiManual(false); tampilToast('Sandi diperbarui.', 'ok'); }} onBatal={() => setGantiManual(false)} />}
-      {toast && <div className={'toast ' + (toast.jenis === 'err' ? 'err' : 'ok')}>{toast.pesan}</div>}
+      <div className="thead"><h1>{judul}</h1>{sub && <div className="sub">{sub}</div>}</div>
+      <div className="spacer" />
+      <div className="who"><span className="ava">{inisial}</span><span className="who-n">{me ? (me.divisi || me.nama) : ''}</span></div>
+      <div className="kebab-wrap" ref={ref}>
+        <button className="kebab" onClick={() => setBuka(!buka)} aria-label="Menu lainnya">⋯</button>
+        {buka && (
+          <div className="menu">
+            <div className="mi" onClick={() => { setBuka(false); onRefresh(); }}>↻ Refresh data</div>
+            {onGantiSandi && <div className="mi" onClick={() => { setBuka(false); onGantiSandi(); }}>🔑 Ganti sandi</div>}
+            <div className="mi" onClick={jalankanDiag}>🩺 Diagnosa</div>
+            {onKeluar && <><div className="msep" /><div className="mi" onClick={() => { setBuka(false); onKeluar(); }}>⎋ Keluar</div></>}
+          </div>
+        )}
+      </div>
+      {diag && (
+        <div className="modal-bg" onClick={() => setDiag(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Diagnosa</h3>
+            {diag.status === 'cek' && <p>Memeriksa…</p>}
+            {diag.status === 'ok' && (
+              <ul className="diag">
+                <li>Versi web: <b>{APP_VERSION}</b></li>
+                <li>Versi kode backend: <b>{diag.versiKode || '-'}</b></li>
+                <li>Versi data: <b>{diag.versiData || '-'}</b></li>
+                <li>Koneksi: <b style={{ color: '#1E7D52' }}>tersambung</b></li>
+              </ul>
+            )}
+            {diag.status === 'galat' && <p style={{ color: '#B42318' }}>Gagal: {diag.pesan}</p>}
+            <button className="btn" onClick={() => setDiag(null)}>Tutup</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
