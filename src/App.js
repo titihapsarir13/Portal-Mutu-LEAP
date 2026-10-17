@@ -14,6 +14,9 @@ import AlurMap from './pages/AlurMap';
 import Admin from './pages/Admin';
 import GantiSandi from './pages/GantiSandi';
 import Beranda from './pages/Beranda';
+import SpmiNaskah from './pages/SpmiNaskah';
+import { useSpmi } from './hooks/useSpmi';
+import { buatPohon, selectedSpmi } from './spmiModel';
 
 const TANPA_LOGIN = true;
 const PENGUNJUNG = Object.freeze({ nama: 'Pengunjung', divisi: 'Umum', peran: 'Pengunjung' });
@@ -61,11 +64,16 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me, data]);
 
-  const bagian = bagianHalaman(hash, modulTampil);
+  const modulMenu = useMemo(() => modulTampil.some((m) => m.id === 'naskah') ? modulTampil : [{ id: 'naskah', nama: 'Naskah SPMI', ikon: 'naskah' }, ...modulTampil], [modulTampil]);
+  const bagian = bagianHalaman(hash, modulMenu);
+  const spmi = useSpmi(bagian === 'spmi');
+  const spmiTree = useMemo(() => buatPohon((spmi.data && spmi.data.rows) || []), [spmi.data]);
+  const spmiSelected = selectedSpmi(hash);
   useEffect(() => { setHalamanTerakhir((v) => v[bagian] === hash ? v : { ...v, [bagian]: hash }); }, [hash, bagian]);
   function pilihUtama(menu) {
-    const items = rincianMenu(menu.id, modulTampil, isSA);
+    const items = rincianMenu(menu.id, modulMenu, isSA);
     const terakhir = halamanTerakhir[menu.id];
+    if (menu.id === 'spmi') { keHalaman(terakhir && terakhir.startsWith('modul-') ? terakhir : 'modul-naskah'); return; }
     keHalaman(items.some((x) => x.id === (terakhir || '').split('~')[0]) ? terakhir : (items[0] || {}).id || menu.awal);
   }
   function toggleSidebar() { if (window.matchMedia('(max-width: 900px)').matches) setDrawer((v) => !v); else toggleCollapse(); }
@@ -85,6 +93,7 @@ export default function App() {
   if (hash === 'beranda') { judul = 'Beranda & Panduan'; sub = 'Mulai dari sini — alur SPMI menuju EKLK & akreditasi'; }
   else if (hash === 'alur') { judul = 'Alur Kerja'; sub = 'Peta alur garis besar persiapan akreditasi'; }
   else if (hash === 'admin') { judul = 'Admin & Akses'; sub = 'Kelola pengguna, sandi, dan hak akses'; }
+  else if (halamanDasar === 'modul-naskah') { judul = 'Naskah SPMI'; sub = 'Naskah awal dan rancangan isian tim'; }
   else if (modulAktif) { judul = modulAktif.judul; sub = modulAktif.deskripsi; }
 
   return (
@@ -92,21 +101,22 @@ export default function App() {
       <MainNav app={data && data.app} aktif={bagian} onPilih={pilihUtama} onMundur={mundur} onMaju={maju} onToggleSidebar={toggleSidebar} />
       <div className="workspace">
       {drawer && <div className="scrim" onClick={() => setDrawer(false)} />}
-      <Sidebar key={bagian} app={data && data.app} modul={modulTampil} naskahBaris={data && data.data.naskah && data.data.naskah.baris} bagian={bagian} aktif={hash} isSA={isSA} collapsed={collapsed}
+      <Sidebar key={bagian} app={data && data.app} modul={modulMenu} spmiTree={spmiTree} spmiSelected={spmiSelected} bagian={bagian} aktif={hash} isSA={isSA} collapsed={collapsed}
         onPilih={(id) => keHalaman(id)} drawer={drawer} onTutup={() => setDrawer(false)}
         onToggleCollapse={toggleCollapse} />
       <div className="main">
-        <Topbar judul={judul} sub={bagianNaskah || sub} me={me}
-          onRefresh={async () => { await portal.refresh(); tampilToast('Data diperbarui.', 'ok'); }}
+        <Topbar judul={judul} sub={halamanDasar === 'modul-naskah' ? sub : bagianNaskah || sub} me={me}
+          onRefresh={async () => { if (halamanDasar === 'modul-naskah') await spmi.refresh(); else await portal.refresh(); }}
           onBurger={() => setDrawer(true)} onKeluar={TANPA_LOGIN ? undefined : keluar}
           onMundur={mundur} onMaju={maju} onGantiSandi={TANPA_LOGIN ? undefined : () => setGantiManual(true)} />
 
-        {portal.status === 'muat' && !data && hash !== 'beranda' && <div className="body"><div className="kosong">Memuat…</div></div>}
-        {portal.status === 'galat' && !data && (
+        {portal.status === 'muat' && !data && hash !== 'beranda' && halamanDasar !== 'modul-naskah' && <div className="body"><div className="kosong">Memuat…</div></div>}
+        {portal.status === 'galat' && !data && halamanDasar !== 'modul-naskah' && (
           <div className="body"><div className="galat"><b>Tidak dapat memuat data.</b><div>{portal.pesan}</div>
             {!api.sudahDiatur() && <div className="hint">API_URL belum diatur di config.js. Lihat PANDUAN langkah G.</div>}</div></div>
         )}
 
+        <div className="spmi-host" hidden={halamanDasar !== 'modul-naskah'}><SpmiNaskah spmi={spmi} tree={spmiTree} selected={spmiSelected} onPilih={keHalaman} onToast={tampilToast} /></div>
         {hash === 'beranda' && <Beranda app={data && data.app} me={me} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'dashboard' && <Dashboard data={data} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'alur' && <AlurMap modul={modulTampil} onPilih={(id) => keHalaman(id)} />}
@@ -118,12 +128,12 @@ export default function App() {
             appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)} registriPos={data.registriPos} onRefresh={portal.refresh}
             onPatch={portal.patchSel} onToast={tampilToast} />
         )}
-        {data && modulAktif && modulAktif.id !== 'form' && (
+        {data && modulAktif && modulAktif.id !== 'form' && modulAktif.id !== 'naskah' && (
           <ModulTabel modul={modulAktif} moddata={dataTampil} opsi={data.opsi} me={me}
             appCfg={data.app} bolehEdit={bolehEdit(modulAktif.id)}
             onPatch={portal.patchSel} onTambah={portal.tambahLokal} onHapus={portal.hapusLokal} onToast={tampilToast} />
         )}
-        {data && hash.indexOf('modul-') === 0 && !modulAktif && <div className="body"><div className="kosong">Modul tidak tersedia untuk Anda.</div></div>}
+        {data && hash.indexOf('modul-') === 0 && halamanDasar !== 'modul-naskah' && !modulAktif && <div className="body"><div className="kosong">Modul tidak tersedia untuk Anda.</div></div>}
       </div>
 
       </div>

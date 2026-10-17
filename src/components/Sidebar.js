@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { MENU_UTAMA, rincianMenu } from './MainNav';
+import SpmiTree from './SpmiTree';
 
 const IKON = { tugas: '◧', naskah: '✎', form: '▤', siklus: '◷', log: '◉', edlk: '◩', dokumen: '▣', eklk: '◆', proses: '➚', ref: '§' };
 
-export default function Sidebar({ modul, naskahBaris, bagian, aktif, onPilih, drawer, collapsed, isSA, onTutup, onToggleCollapse }) {
+export default function Sidebar({ modul, spmiTree, spmiSelected, bagian, aktif, onPilih, drawer, collapsed, isSA, onTutup, onToggleCollapse }) {
   const [cari, setCari] = useState('');
   const menu = MENU_UTAMA.find((m) => m.id === bagian) || MENU_UTAMA[0];
   const items = rincianMenu(bagian, modul, isSA);
-  const bagianNaskah = [...new Set((naskahBaris || []).map((b) => String(b.c[2] || '').trim()).filter(Boolean))];
-  const visible = items.filter((m) => m.nama.toLowerCase().includes(cari.toLowerCase()) || (m.id === 'modul-naskah' && bagianNaskah.some((x) => x.toLowerCase().includes(cari.toLowerCase()))));
+  const visible = items.filter((m) => m.nama.toLowerCase().includes(cari.toLowerCase()) || (m.id === 'modul-naskah' && spmiTree));
   return <aside className={'side section-side' + (drawer ? ' drawer' : '') + (collapsed ? ' collapsed' : '')} aria-label={'Rincian ' + menu.label}>
     <div className="section-side-head">
       <span className="section-side-title">{menu.label}</span>
@@ -21,7 +21,7 @@ export default function Sidebar({ modul, naskahBaris, bagian, aktif, onPilih, dr
         {visible.map((m) => <React.Fragment key={m.id}><button className={'ni' + (aktif === m.id ? ' act' : '')} aria-current={aktif === m.id ? 'page' : undefined} onClick={() => onPilih(m.id)} title={m.nama}>
           <span className="ic">{IKON[m.ikon] || m.ikon || '•'}</span><span className="ni-l">{m.terkunci ? '🔒 ' : ''}{m.nama}</span>{m._jml != null && <span className="bdg">{m._jml}</span>}
         </button>
-          {m.id === 'modul-naskah' && bagianNaskah.length > 0 && <div className="section-chapters">{bagianNaskah.filter((x) => !cari || x.toLowerCase().includes(cari.toLowerCase()) || m.nama.toLowerCase().includes(cari.toLowerCase())).map((nama) => { const id = 'modul-naskah~' + encodeURIComponent(nama); return <button key={id} className={'section-chapter' + (aktif === id ? ' active' : '')} onClick={() => onPilih(id)} aria-current={aktif === id ? 'page' : undefined}>{nama}</button>; })}</div>}
+          {m.id === 'modul-naskah' && spmiTree && <SpmiTree tree={spmiTree} aktif={spmiSelected} query={cari} pilih={onPilih} />}
         </React.Fragment>)}
         {!visible.length && <p className="section-empty">{items.length ? 'Tidak ada rincian yang cocok.' : 'Belum ada menu yang tersedia untuk akun ini.'}</p>}
       </nav>
