@@ -34,6 +34,17 @@ function EditRancangan({ row, onBatal, onSimpan }) {
 export default function SpmiNaskah({ spmi, tree, selected, onPilih, onToast }) {
   const [filter, setFilter] = useState('semua'), [query, setQuery] = useState(''), [page, setPage] = useState(1), [edit, setEdit] = useState(null);
   const [size, setSize] = useState(20);
+  const [ringkas, setRingkas] = useState(false);
+  const scrollArea = useRef(null), sudahLewat = useRef(false);
+  useEffect(() => {
+    setRingkas(false); sudahLewat.current = false;
+    if (scrollArea.current) scrollArea.current.scrollTop = 0;
+  }, [selected]);
+  function gulirTabel(e) {
+    const lewat = e.currentTarget.scrollTop > 48;
+    if (lewat && !sudahLewat.current) setRingkas(true);
+    sudahLewat.current = lewat;
+  }
   const node = tree.byKey[selected] || tree.root;
   const rows = useMemo(() => { const ids = new Set(node.ids); return ((spmi.data && spmi.data.rows) || []).filter((r) => ids.has(r.id)); }, [node, spmi.data]);
   const counts = useMemo(() => rows.reduce((acc, r) => { const k = jejak(r).key; acc[k] = (acc[k] || 0) + 1; return acc; }, {}), [rows]);
@@ -46,20 +57,22 @@ export default function SpmiNaskah({ spmi, tree, selected, onPilih, onToast }) {
   const bisaEdit = spmi.live && spmi.status === 'siap';
   async function copyLink() { try { await navigator.clipboard.writeText(window.location.href); onToast('Tautan bagian disalin.', 'ok'); } catch (e) { onToast('Salin alamat bagian dari bilah alamat browser.', 'err'); } }
   const sourceLink = spmi.data && spmi.data.spreadsheetId ? 'https://docs.google.com/spreadsheets/d/' + spmi.data.spreadsheetId + '/edit' : null;
-  return <div className="body spmi-reader">
+  return <div className={'body spmi-reader' + (ringkas ? ' spmi-reader-compact' : '')}>
     {!spmi.live && <div className="spmi-notice">Pratinjau dari file Sistem Portal Mutu LEAP.xlsx. Hubungkan backend SPMI untuk mengedit dan menyimpan ke spreadsheet dummy.</div>}
     {spmi.error && <div className="galat" role="alert">{spmi.error}<button className="btn" onClick={spmi.refresh}>Coba muat ulang</button></div>}
     {spmi.status === 'muat' && <p role="status">Memuat naskah terbaru…</p>}
     {spmi.data && spmi.data.isianTanpaAwal && spmi.data.isianTanpaAwal.length > 0 && <div className="spmi-notice">Ada {spmi.data.isianTanpaAwal.length} ID isian tanpa pasangan Naskah Awal. Tambahkan pasangan pada sumber agar dapat ditampilkan.</div>}
-    <section className="spmi-heading">
+    <section className="spmi-heading" aria-label="Pengaturan pembaca naskah">
       <div className="spmi-crumb">SPMI{node.path.length ? ' / ' + node.path.slice(0, -1).join(' / ') : ' / Naskah SPMI'}</div>
-      <div className="spmi-title-row"><h2>{node.label}</h2><button className="btn" onClick={copyLink}>Salin tautan</button><div className="spmi-prev-next"><button className="btn" disabled={ix <= 0} onClick={() => onPilih(routeSpmi(siblings[ix - 1].key))} aria-label="Bagian sebelumnya">‹</button><button className="btn" disabled={ix < 0 || ix >= siblings.length - 1} onClick={() => onPilih(routeSpmi(siblings[ix + 1].key))} aria-label="Bagian berikutnya">›</button></div></div>
-      <div className="spmi-heading-grid"><div><small>SUMBER ACUAN</small><p>Naskah Awal</p></div><div><small>RANCANGAN TIM</small><p>Naskah Isian {sourceLink && <a href={sourceLink} target="_blank" rel="noopener noreferrer">Buka spreadsheet ↗</a>}</p></div><div><small>DATA TERAKHIR DIMUAT</small><p>{spmi.data && spmi.data.waktu ? new Date(spmi.data.waktu).toLocaleString('id-ID') : 'File unggahan'}</p></div></div>
+      <div className="spmi-title-row"><h2>{node.label}</h2><button className="btn spmi-heading-toggle" onClick={() => setRingkas((v) => !v)} aria-expanded={!ringkas} aria-controls="spmi-heading-detail">{ringkas ? '⌄ Perluas' : '⌃ Perkecil'}</button><button className="btn" onClick={copyLink}>Salin tautan</button><div className="spmi-prev-next"><button className="btn" disabled={ix <= 0} onClick={() => onPilih(routeSpmi(siblings[ix - 1].key))} aria-label="Bagian sebelumnya">‹</button><button className="btn" disabled={ix < 0 || ix >= siblings.length - 1} onClick={() => onPilih(routeSpmi(siblings[ix + 1].key))} aria-label="Bagian berikutnya">›</button></div></div>
+      <div id="spmi-heading-detail" hidden={ringkas}><div className="spmi-heading-grid"><div><small>SUMBER ACUAN</small><p>Naskah Awal</p></div><div><small>RANCANGAN TIM</small><p>Naskah Isian {sourceLink && <a href={sourceLink} target="_blank" rel="noopener noreferrer">Buka spreadsheet ↗</a>}</p></div><div><small>DATA TERAKHIR DIMUAT</small><p>{spmi.data && spmi.data.waktu ? new Date(spmi.data.waktu).toLocaleString('id-ID') : 'File unggahan'}</p></div></div>
       <div className="spmi-tools"><span>Tampilkan</span>{FILTER.map(([id, label]) => <button key={id} className={'spmi-filter' + (filter === id ? ' active' : '')} onClick={() => setFilter(id)} aria-pressed={filter === id}>{label} <b>{id === 'semua' ? rows.length : counts[id] || 0}</b></button>)}</div>
       <div className="spmi-searchbar"><input type="search" placeholder="Cari isi naskah atau ID…" aria-label="Cari isi naskah" value={query} onChange={(e) => setQuery(e.target.value)} /><button className="btn" disabled={!spmi.live || spmi.status === 'muat' || !!edit} onClick={spmi.refresh}>↻ Muat ulang naskah</button></div>
+      </div>
+      {ringkas && <div className="spmi-compact-summary">{filtered.length} bagian · {FILTER.find(([id]) => id === filter)[1]}{query ? ' · Pencarian: ' + query : ''}</div>}
       {selected !== 'all' && !tree.byKey[selected] && <p className="spmi-notice">Pilihan bagian lama tidak ditemukan. Menampilkan seluruh naskah; pilih kembali pada menu kiri.</p>}
     </section>
-    <div className="spmi-comparison-wrap"><table className="spmi-comparison"><colgroup><col className="spmi-col-awal" /><col className="spmi-col-jejak" /><col className="spmi-col-draft" /><col className="spmi-col-note" /></colgroup><thead><tr><th>NASKAH AWAL</th><th>JEJAK</th><th>RANCANGAN · ISIAN TIM</th><th>CATATAN / REVIEW</th></tr></thead><tbody>
+    <div className="spmi-comparison-wrap" ref={scrollArea} onScroll={gulirTabel} tabIndex={0} role="region" aria-label="Tabel perbandingan naskah, gulir untuk membaca"><table className="spmi-comparison"><colgroup><col className="spmi-col-awal" /><col className="spmi-col-jejak" /><col className="spmi-col-draft" /><col className="spmi-col-note" /></colgroup><thead><tr><th scope="col">NASKAH AWAL</th><th scope="col">JEJAK</th><th scope="col">RANCANGAN · ISIAN TIM</th><th scope="col">CATATAN / REVIEW</th></tr></thead><tbody>
       {shown.map((r) => { const trace = jejak(r); return <tr key={r.id}>
         <td><div className="spmi-row-label">{r.komponen || r.bagian}<small>{r.id}</small></div><Text value={r.awal} empty="Tidak ada isi pada naskah awal." /></td>
         <td><span className={'spmi-trace ' + trace.key}>{trace.label}</span><details className="spmi-mapping"><summary>Pemetaan sumber</summary><p>{r.status || '—'}</p></details></td>

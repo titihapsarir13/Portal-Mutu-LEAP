@@ -414,3 +414,22 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .spmi-edit-bg{position:fixed;inset:0;background:#101a4560;z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;}
 .spmi-edit{background:#fff;border-radius:10px;box-shadow:0 15px 60px #17235040;width:min(850px,100%);max-height:94vh;overflow:auto;padding:24px;}.spmi-edit h2{font-size:18px;line-height:1.5;color:#202b68;}.spmi-edit small,.spmi-edit>p{color:#758098;font-size:11px;line-height:1.7;}.spmi-edit label{display:block;margin:14px 0 0;font-weight:650;font-size:12px;color:#445577;}.spmi-edit input,.spmi-edit textarea{display:block;width:100%;margin-top:6px;border:1px solid #cdd7ed;border-radius:5px;font:inherit;font-weight:400;color:#28354e;padding:10px;}.spmi-edit textarea{resize:vertical;min-height:220px;line-height:1.8;font-size:13px;}.spmi-edit textarea:focus,.spmi-edit input:focus{outline:2px solid #b7c9f4;outline-offset:1px;}.spmi-edit-meta{text-align:right;font-size:10px;color:#7b879b;margin:6px 0 10px;}.spmi-edit footer{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}.spmi-edit details{font-size:12px;margin-top:12px;}.spmi-edit .galat{margin-top:10px;font-size:12px;}
 @media(max-width:900px){.spmi-reader{padding:12px;}.spmi-title-row h2{font-size:17px;}.spmi-heading-grid{grid-template-columns:1fr;gap:8px;}.spmi-heading-grid p{margin:2px 0;}.spmi-heading-grid{margin:10px 0;}.spmi-comparison{min-width:900px;}.spmi-edit-bg{padding:8px;}.spmi-edit{padding:16px;}}
+
+/* Pembaca SPMI: bagian atas ringkas dan judul kolom tetap terlihat. */
+.spmi-reader{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.spmi-reader>.spmi-notice,.spmi-reader>.galat,.spmi-reader>p[role="status"]{flex:0 0 auto;max-height:18vh;overflow:auto;}
+.spmi-reader .spmi-heading{flex:0 0 auto;min-height:0;max-height:55%;overflow:auto;margin-bottom:10px;}
+.spmi-heading-toggle{margin-left:auto;white-space:nowrap;}
+.spmi-title-row .spmi-prev-next{margin-left:0;}
+.spmi-reader-compact .spmi-heading{padding:9px 14px;}
+.spmi-reader-compact .spmi-crumb{margin-bottom:3px;font-size:9px;}
+.spmi-reader-compact .spmi-title-row h2{font-size:15px;}
+.spmi-compact-summary{font-size:10px;color:#758098;margin-top:5px;overflow-wrap:anywhere;}
+.spmi-reader .spmi-comparison-wrap{flex:1 1 0;min-height:100px;overflow:auto;position:relative;overscroll-behavior:contain;scrollbar-gutter:stable;}
+.spmi-reader .spmi-comparison{border-collapse:separate;border-spacing:0;}
+.spmi-reader .spmi-comparison thead th{position:sticky;top:0;z-index:3;background:#eef1f8;box-shadow:0 1px 0 #dbe2f6;}
+.spmi-comparison-wrap:focus-visible{outline:2px solid #829cdb;outline-offset:2px;}
+.spmi-reader .spmi-pagination{flex:0 0 auto;margin:8px 0;}
+.spmi-reader .spmi-reader-note{flex:0 0 auto;}
+@media(max-height:600px){.spmi-reader .spmi-reader-note{display:none;}.spmi-reader .spmi-heading{max-height:45%;}.spmi-reader .spmi-pagination{gap:5px;margin:5px 0;}}
+@media(max-width:600px){.spmi-title-row{gap:6px;}.spmi-title-row h2{flex-basis:100%;}.spmi-heading-toggle{margin-left:0;}.spmi-reader .spmi-reader-note{display:none;}}
