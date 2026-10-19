@@ -475,3 +475,53 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .spmi-tree-select { min-width:0; }
 /* Whitespace around Markdown paragraph nodes must not push list markers onto a separate line. */
 .spmi-formatted li { white-space:normal; }
+
+/* ===== Sidebar: tombol buka/tutup pohon Naskah SPMI ===== */
+.ni-row{display:flex;align-items:center;gap:2px;}
+.ni-row .ni{flex:1;min-width:0;}
+.ni-tree-toggle{flex:0 0 auto;width:26px;height:30px;border:0;background:transparent;color:#8592b5;font-size:11px;border-radius:5px;}
+.ni-tree-toggle:hover{background:#f1f4fb;color:var(--navy);}
+
+/* ===== Halaman Status SPMI ===== */
+.statusspmi{background:#f6f8fc;}
+.ss-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
+.ss-head h2{font-size:18px;color:#1f2a52;font-weight:800;}
+.ss-head p{font-size:12.5px;color:var(--mut);margin:3px 0 0;}
+.ss-loaded{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.ss-loaded small{display:block;font-size:9px;letter-spacing:.5px;color:#758098;}
+.ss-loaded time{display:block;margin-top:3px;font-size:11px;color:#344378;}
+.ss-filters{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.ss-filters-l{font-size:11px;color:#8a93a6;font-weight:700;}
+.ss-fl{font-size:12px;padding:6px 12px;border:1px solid var(--bd);border-radius:16px;background:#fff;color:#4a5570;}
+.ss-fl.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:600;}
+.ss-fl:hover{border-color:#b9c6e6;}
+.ss-panel{overflow:hidden;}
+.ss-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
+.ss-table thead th{position:static;background:#f7f9fd;text-align:left;padding:11px 14px;font-weight:700;color:#424c66;font-size:11px;letter-spacing:.3px;border-bottom:1px solid var(--bd);}
+.ss-table td{padding:13px 14px;border-bottom:1px solid #eef2f8;vertical-align:top;overflow-wrap:anywhere;}
+.ss-c-bab{width:23%;}.ss-c-status{width:27%;}.ss-c-pic{width:8%;}
+.ss-bab{font-weight:700;color:#1f4e8c;cursor:pointer;border-bottom:1px dashed #a9c3e6;line-height:1.5;}
+.ss-bab:hover{color:#123a6b;border-bottom-style:solid;}
+.ss-verdict{display:inline-block;font-size:12px;font-weight:700;padding:4px 11px;border-radius:14px;line-height:1.4;}
+.v-g{background:var(--grnb);color:var(--grn);}.v-a{background:var(--ambb);color:var(--amb);}.v-m{background:var(--muteb);color:var(--mute);}
+.ss-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.ss-chip{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:11px;cursor:pointer;}
+.ss-chip:hover{text-decoration:underline;filter:brightness(.97);}
+.ss-pic{color:#aab0bf;}
+.ss-notes{display:flex;flex-direction:column;gap:10px;}
+.ss-grp{line-height:1.5;}
+.ss-src{font-weight:700;color:#1f4e8c;cursor:pointer;border-bottom:1px dashed #a9c3e6;font-size:12px;}
+.ss-src:hover{border-bottom-style:solid;}
+.ss-tag{font-size:9.5px;font-weight:600;padding:1px 7px;border-radius:9px;margin-left:7px;vertical-align:middle;}
+.ss-pts{list-style:none;margin:6px 0 0;padding:0;}
+.ss-pts li{position:relative;padding-left:14px;font-size:12px;color:#39415a;line-height:1.55;margin-bottom:3px;}
+.ss-pts li:before{content:"•";position:absolute;left:2px;color:#9aa6c0;font-weight:700;}
+.ss-nonote{font-size:11.5px;color:#9aa2b2;margin-top:5px;}
+.ss-empty{color:#aab0bf;font-size:12px;}
+.ss-legend{font-size:11px;color:#8a93a6;margin-top:10px;}
+.statusspmi .c-g{background:var(--grnb);color:var(--grn);}
+.statusspmi .c-r{background:var(--redb);color:var(--red);}
+.statusspmi .c-d{background:#eaf0ff;color:#38599e;}
+.statusspmi .c-w{background:var(--ambb);color:var(--amb);}
+.statusspmi .c-m{background:var(--muteb);color:var(--mute);}
+@media(max-width:800px){.ss-table,.ss-table tbody,.ss-table tr,.ss-table td{display:block;width:auto;}.ss-table thead{display:none;}.ss-table td{border-bottom:0;padding:6px 14px;}.ss-table tr{border-bottom:1px solid #e6ebf4;padding:8px 0;}.ss-c-bab,.ss-c-status,.ss-c-pic{width:auto;}.ss-pic{display:none;}}

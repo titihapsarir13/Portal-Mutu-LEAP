@@ -55,11 +55,13 @@ function EditReview({ row, onBatal, onSimpan }) {
   </section></div>;
 }
 
-export default function SpmiNaskah({ spmi, tree, selected, onPilih, onToast }) {
+export default function SpmiNaskah({ spmi, tree, selected, filterAwal, onPilih, onToast }) {
   const [filter, setFilter] = useState('semua'), [query, setQuery] = useState(''), [page, setPage] = useState(1), [edit, setEdit] = useState(null), [review, setReview] = useState(null);
   const [size, setSize] = useState(20), [ringkas, setRingkas] = useState(false);
   const scrollArea = useRef(null), sudahLewat = useRef(false);
   useEffect(() => { setRingkas(false); sudahLewat.current = false; if (scrollArea.current) scrollArea.current.scrollTop = 0; }, [selected]);
+  // Filter awal dari tautan (mis. klik chip di Status SPMI). Null = tanpa filter → Semua.
+  useEffect(() => { setFilter(filterAwal != null ? filterAwal : 'semua'); }, [selected, filterAwal]);
   function gulirTabel(e) { const lewat = e.currentTarget.scrollTop > 48; if (lewat && !sudahLewat.current) setRingkas(true); sudahLewat.current = lewat; }
   const node = tree.byKey[selected] || tree.root;
   const rows = useMemo(() => { const ids = new Set(node.ids); return ((spmi.data && spmi.data.rows) || []).filter((r) => tampilDiWeb(r) && ids.has(r.id)); }, [node, spmi.data]);

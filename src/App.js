@@ -15,8 +15,9 @@ import Admin from './pages/Admin';
 import GantiSandi from './pages/GantiSandi';
 import Beranda from './pages/Beranda';
 import SpmiNaskah from './pages/SpmiNaskah';
+import StatusSpmi from './pages/StatusSpmi';
 import { useSpmi } from './hooks/useSpmi';
-import { buatPohon, selectedSpmi } from './spmiModel';
+import { buatPohon, selectedSpmi, filterDariHash } from './spmiModel';
 
 const TANPA_LOGIN = true;
 const PENGUNJUNG = Object.freeze({ nama: 'Pengunjung', divisi: 'Umum', peran: 'Pengunjung' });
@@ -73,7 +74,7 @@ export default function App() {
   function pilihUtama(menu) {
     const items = rincianMenu(menu.id, modulMenu, isSA);
     const terakhir = halamanTerakhir[menu.id];
-    if (menu.id === 'spmi') { keHalaman(terakhir && terakhir.startsWith('modul-') ? terakhir : 'modul-naskah'); return; }
+    if (menu.id === 'spmi') { keHalaman(terakhir && (terakhir.startsWith('modul-') || terakhir === 'status-spmi') ? terakhir : 'status-spmi'); return; }
     keHalaman(items.some((x) => x.id === (terakhir || '').split('~')[0]) ? terakhir : (items[0] || {}).id || menu.awal);
   }
   function toggleSidebar() { if (window.matchMedia('(max-width: 900px)').matches) setDrawer((v) => !v); else toggleCollapse(); }
@@ -91,6 +92,7 @@ export default function App() {
   const dataTampil = bagianNaskah && dataAktif ? { ...dataAktif, baris: dataAktif.baris.filter((b) => String(b.c[2] || '').trim() === bagianNaskah) } : dataAktif;
   let judul = 'Dashboard', sub = 'Ringkasan progres persiapan akreditasi';
   if (hash === 'beranda') { judul = 'Beranda & Panduan'; sub = 'Mulai dari sini — alur SPMI menuju EKLK & akreditasi'; }
+  else if (hash === 'status-spmi') { judul = 'Status SPMI'; sub = 'Ringkasan status review per BAB'; }
   else if (hash === 'alur') { judul = 'Alur Kerja'; sub = 'Peta alur garis besar persiapan akreditasi'; }
   else if (hash === 'admin') { judul = 'Admin & Akses'; sub = 'Kelola pengguna, sandi, dan hak akses'; }
   else if (halamanDasar === 'modul-naskah') { judul = 'Naskah SPMI'; sub = 'Naskah awal dan rancangan isian tim'; }
@@ -106,17 +108,18 @@ export default function App() {
         onToggleCollapse={toggleCollapse} />
       <div className="main">
         <Topbar judul={judul} sub={halamanDasar === 'modul-naskah' ? sub : bagianNaskah || sub} me={me}
-          onRefresh={async () => { if (halamanDasar === 'modul-naskah') await spmi.refresh(); else await portal.refresh(); }}
+          onRefresh={async () => { if (halamanDasar === 'modul-naskah' || hash === 'status-spmi') await spmi.refresh(); else await portal.refresh(); }}
           onBurger={() => setDrawer(true)} onKeluar={TANPA_LOGIN ? undefined : keluar}
           onMundur={mundur} onMaju={maju} onGantiSandi={TANPA_LOGIN ? undefined : () => setGantiManual(true)} />
 
-        {portal.status === 'muat' && !data && hash !== 'beranda' && halamanDasar !== 'modul-naskah' && <div className="body"><div className="kosong">Memuat…</div></div>}
-        {portal.status === 'galat' && !data && halamanDasar !== 'modul-naskah' && (
+        {portal.status === 'muat' && !data && hash !== 'beranda' && hash !== 'status-spmi' && halamanDasar !== 'modul-naskah' && <div className="body"><div className="kosong">Memuat…</div></div>}
+        {portal.status === 'galat' && !data && hash !== 'status-spmi' && halamanDasar !== 'modul-naskah' && (
           <div className="body"><div className="galat"><b>Tidak dapat memuat data.</b><div>{portal.pesan}</div>
             {!api.sudahDiatur() && <div className="hint">API_URL belum diatur di config.js. Lihat PANDUAN langkah G.</div>}</div></div>
         )}
 
-        <div className="spmi-host" hidden={halamanDasar !== 'modul-naskah'}><SpmiNaskah spmi={spmi} tree={spmiTree} selected={spmiSelected} onPilih={keHalaman} onToast={tampilToast} /></div>
+        <div className="spmi-host" hidden={halamanDasar !== 'modul-naskah'}><SpmiNaskah spmi={spmi} tree={spmiTree} selected={spmiSelected} filterAwal={filterDariHash(hash)} onPilih={keHalaman} onToast={tampilToast} /></div>
+        {hash === 'status-spmi' && <StatusSpmi spmi={spmi} tree={spmiTree} onPilih={keHalaman} />}
         {hash === 'beranda' && <Beranda app={data && data.app} me={me} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'dashboard' && <Dashboard data={data} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'alur' && <AlurMap modul={modulTampil} onPilih={(id) => keHalaman(id)} />}

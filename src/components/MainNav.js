@@ -2,7 +2,7 @@ import React from 'react';
 
 export const MENU_UTAMA = [
   { id: 'beranda', label: 'Beranda', awal: 'beranda' },
-  { id: 'spmi', label: 'SPMI', awal: 'modul-naskah' },
+  { id: 'spmi', label: 'SPMI', awal: 'status-spmi' },
   { id: 'siklus', label: 'Siklus Mutu', awal: 'modul-siklus' },
   { id: 'evaluasi', label: 'Evaluasi Diri', awal: 'modul-edlk' },
   { id: 'eklk', label: 'EKLK', awal: 'modul-eklk_bim' }
@@ -17,10 +17,14 @@ export function bagianModul(m) {
 }
 
 export function bagianHalaman(hash, modul) {
+  if (hash === 'status-spmi') return 'spmi';
   if (!hash || ['beranda', 'alur', 'dashboard', 'admin'].includes(hash)) return 'beranda';
   const id = hash.split('~')[0].replace(/^modul-/, '');
   return bagianModul((modul || []).find((m) => m.id === id) || { id });
 }
+
+// Rincian menu yang disembunyikan dari tab SPMI (hanya tampilan; data sumber tetap ada).
+const SPMI_SEMBUNYI = ['form', 'tugas'];
 
 export function rincianMenu(bagian, modul, isSA) {
   const items = bagian === 'beranda' ? [
@@ -28,8 +32,13 @@ export function rincianMenu(bagian, modul, isSA) {
     { id: 'alur', nama: 'Alur Kerja (Peta)', ikon: '◇' },
     { id: 'dashboard', nama: 'Dashboard', ikon: '▦' }
   ] : [];
+  // Tab SPMI: Status SPMI di urutan pertama, lalu Naskah SPMI.
+  if (bagian === 'spmi') items.push({ id: 'status-spmi', nama: 'Status SPMI', ikon: '▦' });
   const urutan = { naskah: 0, form: 1, tugas: 2, siklus: 0, log: 1, edlk: 0, dokumen: 1, eklk_bim: 0, eklk_ket: 1, ref_eklk_kh: 2, proses: 3 };
-  const list = (modul || []).filter((m) => bagianModul(m) === bagian).slice().sort((a, b) => (urutan[a.id] ?? 100) - (urutan[b.id] ?? 100) || (a.urutan || 0) - (b.urutan || 0));
+  const list = (modul || [])
+    .filter((m) => bagianModul(m) === bagian)
+    .filter((m) => !(bagian === 'spmi' && SPMI_SEMBUNYI.includes(m.id)))
+    .slice().sort((a, b) => (urutan[a.id] ?? 100) - (urutan[b.id] ?? 100) || (a.urutan || 0) - (b.urutan || 0));
   list.forEach((m) => items.push({ ...m, id: 'modul-' + m.id, nama: m.id === 'naskah' ? 'Naskah SPMI' : m.nama, modul: true }));
   if (bagian === 'beranda' && isSA) items.push({ id: 'admin', nama: 'Admin & Akses', ikon: '⚙' });
   return items;
