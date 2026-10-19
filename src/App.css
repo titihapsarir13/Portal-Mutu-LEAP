@@ -525,3 +525,8 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .statusspmi .c-w{background:var(--ambb);color:var(--amb);}
 .statusspmi .c-m{background:var(--muteb);color:var(--mute);}
 @media(max-width:800px){.ss-table,.ss-table tbody,.ss-table tr,.ss-table td{display:block;width:auto;}.ss-table thead{display:none;}.ss-table td{border-bottom:0;padding:6px 14px;}.ss-table tr{border-bottom:1px solid #e6ebf4;padding:8px 0;}.ss-c-bab,.ss-c-status,.ss-c-pic{width:auto;}.ss-pic{display:none;}}
+
+/* caret buka/tutup pada item "Naskah SPMI" */
+.ni-naskah{width:100%;}
+.ni-caret{flex:0 0 auto;margin-left:6px;font-size:10px;color:#8592b5;}
+.ni-naskah:hover .ni-caret{color:var(--navy);}

@@ -74,7 +74,7 @@ export default function App() {
   function pilihUtama(menu) {
     const items = rincianMenu(menu.id, modulMenu, isSA);
     const terakhir = halamanTerakhir[menu.id];
-    if (menu.id === 'spmi') { keHalaman(terakhir && (terakhir.startsWith('modul-') || terakhir === 'status-spmi') ? terakhir : 'status-spmi'); return; }
+    if (menu.id === 'spmi') { let t = terakhir; if (t && t.indexOf('modul-naskah') === 0) t = 'modul-naskah'; keHalaman(t && (t.startsWith('modul-') || t === 'status-spmi') ? t : 'status-spmi'); return; }
     keHalaman(items.some((x) => x.id === (terakhir || '').split('~')[0]) ? terakhir : (items[0] || {}).id || menu.awal);
   }
   function toggleSidebar() { if (window.matchMedia('(max-width: 900px)').matches) setDrawer((v) => !v); else toggleCollapse(); }
