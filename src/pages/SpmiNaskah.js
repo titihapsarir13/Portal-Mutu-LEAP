@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { simpanSpmi } from '../apiSpmi';
-import { jejak, routeSpmi } from '../spmiModel';
+import Text from '../components/SpmiText';
+import { jejak, routeSpmi, judulBagian } from '../spmiModel';
 
 const FILTER = [['semua', 'Semua bagian'], ['berbeda', 'Berbeda'], ['sama', 'Sama'], ['tambahan', 'Tambahan tim'], ['dibuang', 'Dibuang'], ['belum', 'Belum / Ditandai belum ada']];
-function Text({ value, empty }) { return <div className="spmi-prose">{value || <span className="spmi-empty">{empty || '—'}</span>}</div>; }
+
 
 function EditRancangan({ row, onBatal, onSimpan }) {
   const [text, setText] = useState(row.rancangan);
@@ -20,10 +21,11 @@ function EditRancangan({ row, onBatal, onSimpan }) {
     finally { setBusy(false); }
   }
   return <div className="spmi-edit-bg"><section className="spmi-edit" role="dialog" aria-modal="true" aria-labelledby="spmi-edit-title">
-    <header><div><small>{row.id}</small><h2 id="spmi-edit-title">Edit rancangan · {row.komponen || row.bagian}</h2></div></header>
-    <p>Perubahan disimpan ke kolom Isi Naskah pada sheet Naskah Isian.</p>
+    <header><div><small>{row.id}</small><h2 id="spmi-edit-title">Edit rancangan · {judulBagian(row)}</h2></div></header>
+    <p>Perubahan disimpan ke kolom Isi Naskah pada sheet Naskah Isian. Gunakan format **tebal**, - untuk bullet, dan 1. untuk daftar bernomor; dua spasi di awal untuk subdaftar.</p>
     <label>Nama pengubah<input value={nama} maxLength={100} onChange={(e) => setNama(e.target.value)} disabled={busy} placeholder="Nama Anda" /></label>
     <label>Rancangan<textarea ref={area} value={text} maxLength={45000} onChange={(e) => setText(e.target.value)} disabled={busy} rows={15} /></label>
+    <details className="spmi-edit-preview"><summary>Pratinjau format</summary><Text value={text} /></details>
     <div className="spmi-edit-meta">{text.length.toLocaleString('id-ID')} / 45.000 karakter</div>
     {error && <div className="galat" role="alert">{error}</div>}
     {konflik != null && <details><summary>Lihat isi terbaru di spreadsheet</summary><Text value={konflik} /></details>}
@@ -74,9 +76,9 @@ export default function SpmiNaskah({ spmi, tree, selected, onPilih, onToast }) {
     </section>
     <div className="spmi-comparison-wrap" ref={scrollArea} onScroll={gulirTabel} tabIndex={0} role="region" aria-label="Tabel perbandingan naskah, gulir untuk membaca"><table className="spmi-comparison"><colgroup><col className="spmi-col-awal" /><col className="spmi-col-jejak" /><col className="spmi-col-draft" /><col className="spmi-col-note" /></colgroup><thead><tr><th scope="col">NASKAH AWAL</th><th scope="col">JEJAK</th><th scope="col">RANCANGAN · ISIAN TIM</th><th scope="col">CATATAN / REVIEW</th></tr></thead><tbody>
       {shown.map((r) => { const trace = jejak(r); return <tr key={r.id}>
-        <td><div className="spmi-row-label">{r.komponen || r.bagian}<small>{r.id}</small></div><Text value={r.awal} empty="Tidak ada isi pada naskah awal." /></td>
+        <td><div className="spmi-row-label">{judulBagian(r)}<small>{r.id}</small></div><Text value={r.awal} empty="Tidak ada isi pada naskah awal." /></td>
         <td><span className={'spmi-trace ' + trace.key}>{trace.label}</span><details className="spmi-mapping"><summary>Pemetaan sumber</summary><p>{r.status || '—'}</p></details></td>
-        <td><div className="spmi-draft-tools"><span>{r.subbagian || r.bagian}</span><button className="btn spmi-edit-button" disabled={!bisaEdit || !r.adaIsian} title={!spmi.live ? 'Hubungkan backend SPMI untuk mengaktifkan Edit' : !r.adaIsian ? 'Tambahkan baris pasangan Naskah Isian dahulu' : 'Edit isi rancangan'} onClick={() => setEdit({ ...r })}>✎ Edit</button></div><Text value={r.rancangan} empty="Belum ada isi rancangan." /></td>
+        <td><div className="spmi-draft-tools"><span>{judulBagian(r)}</span><button className="btn spmi-edit-button" disabled={!bisaEdit || !r.adaIsian} title={!spmi.live ? 'Hubungkan backend SPMI untuk mengaktifkan Edit' : !r.adaIsian ? 'Tambahkan baris pasangan Naskah Isian dahulu' : 'Edit isi rancangan'} onClick={() => setEdit({ ...r })}>✎ Edit</button></div><Text value={r.rancangan} empty="Belum ada isi rancangan." /></td>
         <td>{r.catatanIsian ? <Text value={r.catatanIsian} /> : <span className="spmi-empty">Belum ada catatan review.</span>}{r.catatanAwal && r.catatanAwal !== r.catatanIsian && <details><summary>Catatan naskah awal</summary><Text value={r.catatanAwal} /></details>}</td>
       </tr>; })}
       {!shown.length && <tr><td colSpan={4} className="kosong">{spmi.status === 'muat' || !spmi.data ? 'Naskah belum dimuat.' : 'Tidak ada bagian yang sesuai dengan pilihan dan pencarian.'}</td></tr>}

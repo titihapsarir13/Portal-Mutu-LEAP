@@ -433,3 +433,16 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .spmi-reader .spmi-reader-note{flex:0 0 auto;}
 @media(max-height:600px){.spmi-reader .spmi-reader-note{display:none;}.spmi-reader .spmi-heading{max-height:45%;}.spmi-reader .spmi-pagination{gap:5px;margin:5px 0;}}
 @media(max-width:600px){.spmi-title-row{gap:6px;}.spmi-title-row h2{flex-basis:100%;}.spmi-heading-toggle{margin-left:0;}.spmi-reader .spmi-reader-note{display:none;}}
+
+/* Pembaca format naskah; tetap memakai freeze header dan panel ringkas. */
+.spmi-formatted { white-space: normal; overflow-wrap: anywhere; }
+.spmi-formatted p { margin: 0 0 .75em; white-space: pre-wrap; }
+.spmi-formatted ul, .spmi-formatted ol { padding-left: 1.8em; margin: .4em 0 .9em; }
+.spmi-formatted li { margin: .25em 0; white-space: pre-wrap; }
+.spmi-formatted li > p { margin: .2em 0; }
+.spmi-formatted strong { font-weight: 700; }
+.spmi-inner-table { overflow-x: auto; max-width: 100%; margin: .5em 0; }
+.spmi-comparison .spmi-inner-table table { width: 100%; table-layout: auto; border-collapse: collapse; }
+.spmi-comparison .spmi-inner-table th, .spmi-comparison .spmi-inner-table td { position: static; min-width: 90px; padding: 7px 9px; border: 1px solid #dce3f0; white-space: pre-wrap; font-size: inherit; background: transparent; color: inherit; }
+.spmi-comparison .spmi-inner-table th { background: #edf2fa; font-weight: 700; }
+.spmi-edit-preview { max-height: 240px; overflow: auto; border: 1px solid #dce3f0; border-radius: 8px; padding: 10px; }
