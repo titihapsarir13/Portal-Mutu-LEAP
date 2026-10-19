@@ -13,3 +13,5 @@ async function request(options) {
 }
 export const muatSpmi = () => request();
 export const simpanSpmi = (body) => request({ method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...body, action: 'simpanRancanganSpmi' }) });
+
+export const simpanReviewSpmi = (body) => simpanSpmi({ ...body, jenis: 'review' });

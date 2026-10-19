@@ -22,6 +22,11 @@ export function jalurBagian(r) {
   if (comp && norm(comp) !== norm(path[path.length - 1]) && norm(comp) !== norm(r.judulBab)) path.push(comp);
   return path;
 }
+export const STATUS_REVIEW = ['', 'Perlu revisi', 'Perlu diskusi', 'Menunggu persetujuan', 'ACC'];
+export function tampilDiWeb(r) {
+  const bab = String(r.bab || '').trim().toUpperCase();
+  return !['AWAL', 'PENUTUP', 'LAMPIRAN', 'RENSTRA'].includes(bab) && !/RENSTRA/.test(bab) && !/^(REN|LAMP)-/.test(r.id);
+}
 export function buatPohon(rows) {
   const root = { key: 'all', label: 'Semua bagian', path: [], ids: [], children: [] };
   const byKey = { all: root };
@@ -31,7 +36,7 @@ export function buatPohon(rows) {
     return byKey[key];
   };
   // Insertion order follows source rows; stages share their Prosedur parent.
-  rows.forEach((r) => {
+  rows.filter(tampilDiWeb).forEach((r) => {
     const path = jalurBagian(r);
     root.ids.push(r.id); let parent = root;
     path.forEach((label, i) => { parent = make(parent, label, path.slice(0, i + 1)); parent.ids.push(r.id); });

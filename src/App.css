@@ -446,3 +446,32 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .spmi-comparison .spmi-inner-table th, .spmi-comparison .spmi-inner-table td { position: static; min-width: 90px; padding: 7px 9px; border: 1px solid #dce3f0; white-space: pre-wrap; font-size: inherit; background: transparent; color: inherit; }
 .spmi-comparison .spmi-inner-table th { background: #edf2fa; font-weight: 700; }
 .spmi-edit-preview { max-height: 240px; overflow: auto; border: 1px solid #dce3f0; border-radius: 8px; padding: 10px; }
+
+/* SPMI terpadu: empat kolom, review per ID dan batas teks yang tegas. */
+.spmi-loaded { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:12px 0 4px; }
+.spmi-loaded small { display:block; font-size:9px; letter-spacing:.5px; color:#758098; }
+.spmi-loaded time { display:block; margin-top:4px; font-size:11px; color:#344378; }
+.spmi-comparison { width:100%; min-width:940px; table-layout:fixed; }
+.spmi-comparison .spmi-col-awal { width:32%; }
+.spmi-comparison .spmi-col-draft { width:32%; }
+.spmi-comparison .spmi-col-note { width:22%; }
+.spmi-comparison .spmi-col-status { width:14%; }
+.spmi-comparison > tbody > tr > td { min-width:0; overflow-wrap:anywhere; word-break:normal; vertical-align:top; }
+.spmi-prose, .spmi-row-label, .spmi-draft-tools > span { min-width:0; max-width:100%; overflow-wrap:anywhere; word-break:normal; }
+.spmi-formatted pre { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; margin:0 0 .75em; }
+.spmi-formatted code { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; }
+.spmi-formatted :is(p,li,a,strong,em) { overflow-wrap:anywhere; }
+.spmi-draft-tools { min-width:0; }
+.spmi-review-tools { display:flex; justify-content:flex-end; margin-bottom:12px; }
+.spmi-review-status { display:block; width:fit-content; max-width:100%; border-radius:6px; padding:6px 8px; background:#eef1f6; color:#5c6980; line-height:1.5; font-size:11px; overflow-wrap:anywhere; }
+.spmi-review-status.status-1 { background:#fff0eb; color:#a24625; }
+.spmi-review-status.status-2 { background:#fff6d8; color:#8a6818; }
+.spmi-review-status.status-3 { background:#eaf0ff; color:#38599e; }
+.spmi-review-status.status-4 { background:#e4f4ec; color:#287254; }
+.spmi-status-button { margin-top:9px; font-size:10px; white-space:normal; }
+.spmi-review-time { display:block; font-size:9px; color:#8894a8; margin-top:8px; }
+.spmi-edit select { display:block; margin-top:6px; width:100%; border:1px solid #cdd7ed; padding:10px; border-radius:5px; font:inherit; background:#fff; }
+.spmi-tree > .depth-0 > .spmi-tree-select, .spmi-tree > .depth-0 > summary { font-weight:700; font-size:10px; }
+.spmi-tree-select { min-width:0; }
+/* Whitespace around Markdown paragraph nodes must not push list markers onto a separate line. */
+.spmi-formatted li { white-space:normal; }
