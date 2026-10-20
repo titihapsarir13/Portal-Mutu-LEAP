@@ -16,21 +16,31 @@ export function bagianModul(m) {
   return 'beranda';
 }
 
+// Halaman tetap (bukan modul backend) yang berada di tab Beranda.
+export const HALAMAN_BERANDA = ['beranda', 'alur', 'dashboard', 'admin', 'dasar-hukum', 'syarat', 'akreditasi'];
+
 export function bagianHalaman(hash, modul) {
   if (hash === 'status-spmi') return 'spmi';
-  if (!hash || ['beranda', 'alur', 'dashboard', 'admin'].includes(hash)) return 'beranda';
+  if (!hash || HALAMAN_BERANDA.includes(hash)) return 'beranda';
   const id = hash.split('~')[0].replace(/^modul-/, '');
   return bagianModul((modul || []).find((m) => m.id === id) || { id });
 }
 
 // Rincian menu yang disembunyikan dari tab SPMI (hanya tampilan; data sumber tetap ada).
 const SPMI_SEMBUNYI = ['form', 'tugas'];
+// Modul referensi yang kini ditampilkan lewat halaman khusus (Dasar Hukum, Syarat, Akreditasi),
+// jadi tidak lagi muncul sebagai item modul kosong di sidebar Beranda. Datanya tetap dibaca.
+const REF_HALAMAN = ['ref_regulasi', 'ref_syarat', 'ref_akre'];
 
 export function rincianMenu(bagian, modul, isSA) {
+  // Ikon dibedakan tiap menu Beranda agar mudah dikenali.
   const items = bagian === 'beranda' ? [
-    { id: 'beranda', nama: 'Panduan', ikon: '⌂' },
-    { id: 'alur', nama: 'Alur Kerja (Peta)', ikon: '◇' },
-    { id: 'dashboard', nama: 'Dashboard', ikon: '▦' }
+    { id: 'beranda', nama: 'Panduan', ikon: '🏠' },
+    { id: 'alur', nama: 'Alur Kerja (Peta)', ikon: '🗺️' },
+    { id: 'dashboard', nama: 'Dashboard', ikon: '📊' },
+    { id: 'dasar-hukum', nama: 'Dasar Hukum & Peraturan', ikon: '⚖️' },
+    { id: 'syarat', nama: 'Syarat & Keputusan', ikon: '📋' },
+    { id: 'akreditasi', nama: 'Akreditasi', ikon: '🏅' }
   ] : [];
   // Tab SPMI: Status SPMI di urutan pertama, lalu Naskah SPMI.
   if (bagian === 'spmi') items.push({ id: 'status-spmi', nama: 'Status SPMI', ikon: '▦' });
@@ -38,9 +48,10 @@ export function rincianMenu(bagian, modul, isSA) {
   const list = (modul || [])
     .filter((m) => bagianModul(m) === bagian)
     .filter((m) => !(bagian === 'spmi' && SPMI_SEMBUNYI.includes(m.id)))
+    .filter((m) => !(bagian === 'beranda' && REF_HALAMAN.includes(m.id)))
     .slice().sort((a, b) => (urutan[a.id] ?? 100) - (urutan[b.id] ?? 100) || (a.urutan || 0) - (b.urutan || 0));
   list.forEach((m) => items.push({ ...m, id: 'modul-' + m.id, nama: m.id === 'naskah' ? 'Naskah SPMI' : m.nama, modul: true }));
-  if (bagian === 'beranda' && isSA) items.push({ id: 'admin', nama: 'Admin & Akses', ikon: '⚙' });
+  if (bagian === 'beranda' && isSA) items.push({ id: 'admin', nama: 'Admin & Akses', ikon: '⚙️' });
   return items;
 }
 

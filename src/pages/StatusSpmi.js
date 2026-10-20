@@ -10,8 +10,8 @@ const TAG = {
   'ACC': { teks: 'acc', cls: 'c-g' }
 };
 const VONIS = {
-  acc: { teks: 'ACC', cls: 'v-g' },
-  proses: { teks: 'Dalam Proses', cls: 'v-a' },
+  acc: { teks: 'Sudah ACC', cls: 'v-g' },
+  proses: { teks: 'Dalam proses', cls: 'v-a' },
   belum: { teks: 'Belum ditinjau', cls: 'v-m' },
   kosong: { teks: '—', cls: 'v-m' }
 };
@@ -40,50 +40,78 @@ export default function StatusSpmi({ spmi, tree, onPilih }) {
     </div>
 
     <div className="panel ss-panel">
-      <table className="ss-table">
-        <thead><tr><th className="ss-c-bab">BAB</th><th className="ss-c-status">STATUS</th><th className="ss-c-pic">PIC</th><th>CATATAN / REVIEW</th></tr></thead>
-        <tbody>
-          {tampil.map((b) => {
-            const v = VONIS[b.verdict] || VONIS.kosong;
-            const chips = b.verdict === 'acc' || b.verdict === 'kosong' ? [] : [
-              ['ACC', b.acc, 'c-g'], ['Perlu revisi', b.revisi, 'c-r'], ['Perlu diskusi', b.diskusi, 'c-d'],
-              ['Menunggu persetujuan', b.menunggu, 'c-w'], ['', b.belum, 'c-m']
-            ].filter(([, n]) => n > 0);
-            return <tr key={b.key}>
-              <td><span className="ss-bab" role="link" tabIndex={0} onClick={() => onPilih(routeSpmi(b.key))}
-                onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(b.key)); }}>{b.label}</span></td>
-              <td>
-                <span className={'ss-verdict ' + v.cls}>{b.verdict === 'kosong' ? '—' : `${v.teks} (${b.acc}/${b.total} bagian ACC)`}</span>
-                {chips.length > 0 && <div className="ss-chips">{chips.map(([status, n, cls]) =>
-                  <span key={status || 'belum'} className={'ss-chip ' + cls} role="link" tabIndex={0}
-                    onClick={() => onPilih(routeSpmiFilter(b.key, status))}
-                    onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmiFilter(b.key, status)); }}>
-                    {n} {(TAG[status] || {}).teks}</span>)}</div>}
-              </td>
-              <td className="ss-pic">—</td>
-              <td>
-                {b.grup.length === 0
-                  ? <span className="ss-empty">{b.verdict === 'acc' ? 'Semua bagian sudah ACC — tidak ada catatan terbuka.' : 'Belum ada catatan review pada BAB ini.'}</span>
-                  : <div className="ss-notes">{b.grup.map((g) => {
-                    const t = TAG[g.tag] || TAG[''];
-                    return <div key={g.key} className="ss-grp">
-                      <span className="ss-src" role="link" tabIndex={0} onClick={() => onPilih(routeSpmi(g.key))}
-                        onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(g.key)); }}>{g.label}</span>
-                      <span className={'ss-tag ' + t.cls}>{t.teks}</span>
-                      {g.poin.length > 0
-                        ? <ul className="ss-pts">{g.poin.flatMap((p, i) =>
-                          String(p.text).split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
-                            .map((s, j) => <li key={i + '-' + j}>{s.replace(/^[-*•]\s*/, '')}</li>))}</ul>
-                        : <div className="ss-nonote">Status ditandai, belum ada catatan tertulis.</div>}
-                    </div>;
-                  })}</div>}
-              </td>
-            </tr>;
-          })}
-          {!tampil.length && <tr><td colSpan={4} className="kosong">{!spmi.data ? 'Naskah belum dimuat.' : 'Tidak ada BAB sesuai saringan.'}</td></tr>}
-        </tbody>
-      </table>
+      <div className="ss-scroll">
+        <table className="ss-table">
+          <colgroup><col className="ss-c-bab" /><col /><col className="ss-c-pic" /></colgroup>
+          <thead><tr><th>BAB</th><th>CATATAN / REVIEW &amp; STATUS</th><th>PIC</th></tr></thead>
+          <tbody>
+            {tampil.map((b) => {
+              const v = VONIS[b.verdict] || VONIS.kosong;
+              const chips = b.verdict === 'acc' || b.verdict === 'kosong' ? [] : [
+                ['ACC', b.acc, 'c-g'], ['Perlu revisi', b.revisi, 'c-r'], ['Perlu diskusi', b.diskusi, 'c-d'],
+                ['Menunggu persetujuan', b.menunggu, 'c-w'], ['', b.belum, 'c-m']
+              ].filter(([, n]) => n > 0);
+              const adaKomentar = b.komentar.length > 0;
+              return <tr key={b.key}>
+                <td>
+                  <span className="ss-bab" role="link" tabIndex={0} onClick={() => onPilih(routeSpmi(b.key))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(b.key)); }}>{b.label}</span>
+                  <div className="ss-pills">
+                    <span className={'ss-verdict ' + v.cls}>{b.verdict === 'kosong' ? '—' : v.teks}</span>
+                    {b.total > 0 && <span className="ss-pill-sub">{b.acc}/{b.total} ACC</span>}
+                  </div>
+                </td>
+                <td>
+                  {/* Status BAB + aksi di baris paling atas */}
+                  <div className="ss-statusrow">
+                    <span className="ss-sr-l">STATUS BAB</span>
+                    <span className={'ss-verdict ' + v.cls}>{b.verdict === 'kosong' ? '—' : v.teks}</span>
+                    {chips.map(([status, n, cls]) =>
+                      <span key={status || 'belum'} className={'ss-chip ' + cls} role="link" tabIndex={0}
+                        onClick={() => onPilih(routeSpmiFilter(b.key, status))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmiFilter(b.key, status)); }}
+                        title="Buka naskah BAB ini dengan filter status">
+                        {n} {(TAG[status] || {}).teks}</span>)}
+                    <button className="ss-open" onClick={() => onPilih(routeSpmi(b.key))}>Tinjau di naskah →</button>
+                  </div>
+
+                  {/* Komentar nyata */}
+                  {adaKomentar && <div className="ss-cmts">
+                    {b.komentar.map((k, i) => {
+                      const t = TAG[k.status] || TAG[''];
+                      return <div className="ss-cmt" key={i}>
+                        <span className="ss-cmt-i">💬</span>
+                        <div className="ss-cmt-b">
+                          {k.sub && <span className="ss-cmt-sub" role="link" tabIndex={0}
+                            onClick={() => onPilih(routeSpmi(k.subKey))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(k.subKey)); }}>{k.sub}</span>}
+                          <span className={'ss-tag ' + t.cls}>{t.teks}</span>
+                          <div className="ss-cmt-t">{k.text}</div>
+                          <span className="ss-who">{k.docs ? ('👤 ' + (k.author || 'Komentar') + ' · Google Docs') : '✎ Catatan tim'}{k.count > 1 ? ` · ${k.count} bagian` : ''}</span>
+                        </div>
+                      </div>;
+                    })}
+                  </div>}
+
+                  {/* Catatan sistem yang berulang — diringkas */}
+                  {b.sistem.map((s, i) => (
+                    <div className="ss-sysnote" key={'s' + i}>
+                      <span className="ss-sys-i">ℹ️</span>
+                      <span><b>{s.count} bagian</b> — {s.text}</span>
+                    </div>
+                  ))}
+
+                  {!adaKomentar && b.sistem.length === 0 &&
+                    <div className="ss-empty">{b.verdict === 'acc' ? 'Semua bagian sudah ACC — tidak ada catatan terbuka.' : 'Belum ada komentar review pada BAB ini.'}</div>}
+                </td>
+                <td className="ss-pic">—</td>
+              </tr>;
+            })}
+            {!tampil.length && <tr><td colSpan={3} className="kosong">{!spmi.data ? 'Naskah belum dimuat.' : 'Tidak ada BAB sesuai saringan.'}</td></tr>}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <p className="ss-legend">Klik judul BAB → buka BAB di naskah · judul subbab → loncat ke subbab · chip status → buka naskah BAB itu dengan filter status otomatis.</p>
+    <p className="ss-legend">💬 komentar nyata (perlu ditindak) · ℹ️ catatan sistem/pemetaan (diringkas). Klik judul BAB/subbab → buka naskah · chip status → buka naskah dengan filter.</p>
   </div>;
 }

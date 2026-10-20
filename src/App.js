@@ -14,6 +14,8 @@ import AlurMap from './pages/AlurMap';
 import Admin from './pages/Admin';
 import GantiSandi from './pages/GantiSandi';
 import Beranda from './pages/Beranda';
+import DasarHukum from './pages/DasarHukum';
+import RefChecklist from './pages/RefChecklist';
 import SpmiNaskah from './pages/SpmiNaskah';
 import StatusSpmi from './pages/StatusSpmi';
 import { useSpmi } from './hooks/useSpmi';
@@ -94,6 +96,9 @@ export default function App() {
   if (hash === 'beranda') { judul = 'Beranda & Panduan'; sub = 'Mulai dari sini — alur SPMI menuju EKLK & akreditasi'; }
   else if (hash === 'status-spmi') { judul = 'Status SPMI'; sub = 'Ringkasan status review per BAB'; }
   else if (hash === 'alur') { judul = 'Alur Kerja'; sub = 'Peta alur garis besar persiapan akreditasi'; }
+  else if (hash === 'dasar-hukum') { judul = 'Dasar Hukum & Peraturan'; sub = 'Acuan peraturan untuk pengambilan keputusan'; }
+  else if (hash === 'syarat') { judul = 'Syarat & Keputusan'; sub = 'Daftar syarat administratif & dokumen pendukung'; }
+  else if (hash === 'akreditasi') { judul = 'Akreditasi'; sub = 'Butir kesiapan menuju akreditasi'; }
   else if (hash === 'admin') { judul = 'Admin & Akses'; sub = 'Kelola pengguna, sandi, dan hak akses'; }
   else if (halamanDasar === 'modul-naskah') { judul = 'Naskah SPMI'; sub = 'Naskah awal dan rancangan isian tim'; }
   else if (modulAktif) { judul = modulAktif.judul; sub = modulAktif.deskripsi; }
@@ -123,6 +128,9 @@ export default function App() {
         {hash === 'beranda' && <Beranda app={data && data.app} me={me} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'dashboard' && <Dashboard data={data} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'alur' && <AlurMap modul={modulTampil} onPilih={(id) => keHalaman(id)} />}
+        {data && hash === 'dasar-hukum' && <DasarHukum data={data} onPilih={(id) => keHalaman(id)} />}
+        {data && hash === 'syarat' && <RefChecklist data={data} moduleId="ref_syarat" title="Syarat & Keputusan" sub="Daftar syarat administratif & legalitas — klik butir untuk rincian & dokumen pendukung." itemHeader="Syarat / Dokumen" />}
+        {data && hash === 'akreditasi' && <RefChecklist data={data} moduleId="ref_akre" title="Akreditasi" sub="Butir kesiapan menuju akreditasi — klik butir untuk rincian & dokumen pendukung." itemHeader="Butir akreditasi" />}
         {data && hash === 'admin' && (isSA
           ? <Admin me={me} onToast={tampilToast} onRefresh={portal.refresh} />
           : <div className="body"><div className="galat"><b>Halaman khusus Super Admin.</b></div></div>)}

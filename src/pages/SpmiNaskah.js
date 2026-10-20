@@ -90,14 +90,22 @@ export default function SpmiNaskah({ spmi, tree, selected, filterAwal, onPilih, 
       {ringkas && <div className="spmi-compact-summary">{labelFilter}{query ? ' · Pencarian: ' + query : ''}</div>}
       {selected !== 'all' && !tree.byKey[selected] && <p className="spmi-notice">Pilihan bagian lama tidak tampil. Pilih kembali pada menu kiri.</p>}
     </section>
-    <div className="spmi-comparison-wrap" ref={scrollArea} onScroll={gulirTabel} tabIndex={0} role="region" aria-label="Tabel perbandingan naskah, gulir untuk membaca"><table className="spmi-comparison"><colgroup><col className="spmi-col-awal" /><col className="spmi-col-draft" /><col className="spmi-col-note" /><col className="spmi-col-status" /></colgroup><thead><tr><th scope="col">NASKAH AWAL</th><th scope="col">RANCANGAN ISIAN TIM</th><th scope="col">CATATAN / REVIEW</th><th scope="col">STATUS</th></tr></thead><tbody>
+    <div className="spmi-comparison-wrap" ref={scrollArea} onScroll={gulirTabel} tabIndex={0} role="region" aria-label="Tabel perbandingan naskah, gulir untuk membaca"><table className="spmi-comparison"><colgroup><col className="spmi-col-awal" /><col className="spmi-col-draft" /><col className="spmi-col-note" /></colgroup><thead><tr><th scope="col">NASKAH AWAL</th><th scope="col">RANCANGAN ISIAN TIM</th><th scope="col">CATATAN / REVIEW &amp; STATUS</th></tr></thead><tbody>
       {shown.map((r) => <tr key={r.id}>
         <td><div className="spmi-row-label">{judulBagian(r)}<small>{r.id}</small></div><Text value={r.awal} empty="Tidak ada uraian terpisah pada ORI untuk bagian ini." /></td>
         <td><div className="spmi-draft-tools"><span>{judulBagian(r)}</span><button className="btn spmi-edit-button" disabled={!bisaEdit || !r.adaIsian} onClick={() => setEdit({ ...r })}>✎ Edit</button></div><Text value={r.rancangan} empty={r.komponen === 'Prosedur' && rows.some((x) => x.subbagian === r.subbagian && /^Prosedur \/ Tahap/.test(x.komponen)) ? 'Rincian prosedur berada pada tahap-tahap di bawah.' : 'Belum ada isi rancangan.'} /></td>
-        <td><div className="spmi-review-tools"><button className="btn spmi-edit-button" disabled={!bisaReview || !r.adaIsian} onClick={() => setReview({ ...r })}>✎ Edit catatan</button></div><Text value={r.catatanIsian} empty="Belum ada catatan review." />{r.catatanAwal && r.catatanAwal !== r.catatanIsian && <details><summary>Catatan acuan</summary><Text value={r.catatanAwal} /></details>}</td>
-        <td><span className={'spmi-review-status status-' + STATUS_REVIEW.indexOf(r.statusReview || '')}>{r.statusReview || 'Belum ditinjau'}</span><button className="btn spmi-status-button" disabled={!bisaReview || !r.adaIsian} onClick={() => setReview({ ...r })}>Ubah status</button>{r.waktuReview && <small className="spmi-review-time">{new Date(r.waktuReview).toLocaleString('id-ID')}</small>}</td>
+        <td>
+          <div className="spmi-statusrow">
+            <span className="spmi-sr-l">STATUS</span>
+            <span className={'spmi-review-status status-' + STATUS_REVIEW.indexOf(r.statusReview || '')}>{r.statusReview || 'Belum ditinjau'}</span>
+            <button className="btn spmi-status-button" disabled={!bisaReview || !r.adaIsian} onClick={() => setReview({ ...r })}>Ubah status</button>
+          </div>
+          <Text value={r.catatanIsian} empty="Belum ada catatan review." />
+          {r.catatanAwal && r.catatanAwal !== r.catatanIsian && <details><summary>Catatan acuan</summary><Text value={r.catatanAwal} /></details>}
+          <div className="spmi-review-tools"><button className="btn spmi-edit-button" disabled={!bisaReview || !r.adaIsian} onClick={() => setReview({ ...r })}>✎ Edit catatan</button>{r.waktuReview && <small className="spmi-review-time">{new Date(r.waktuReview).toLocaleString('id-ID')}</small>}</div>
+        </td>
       </tr>)}
-      {!shown.length && <tr><td colSpan={4} className="kosong">{spmi.status === 'muat' || !spmi.data ? 'Naskah belum dimuat.' : 'Tidak ada bagian sesuai status atau pencarian.'}</td></tr>}
+      {!shown.length && <tr><td colSpan={3} className="kosong">{spmi.status === 'muat' || !spmi.data ? 'Naskah belum dimuat.' : 'Tidak ada bagian sesuai status atau pencarian.'}</td></tr>}
     </tbody></table></div>
     <div className="spmi-pagination"><span>{filtered.length} bagian · Halaman {currentPage} / {totalPage}</span><label>Baris <select value={size} onChange={(e) => setSize(Number(e.target.value))}><option>20</option><option>50</option><option>100</option></select></label><button className="btn" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Sebelumnya</button><button className="btn" disabled={currentPage >= totalPage} onClick={() => setPage(currentPage + 1)}>Berikutnya</button></div>
     {edit && <EditRancangan row={edit} onBatal={() => setEdit(null)} onSimpan={(r) => { spmi.patchRow(r); setEdit(null); onToast('Rancangan tersimpan.', 'ok'); }} />}

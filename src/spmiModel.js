@@ -70,8 +70,14 @@ export function jejak(r) {
 }
 
 // Rekap status review per BAB untuk halaman Status SPMI.
-// "bagian" = baris yang dapat ditinjau (punya pasangan Isian). Catatan dikelompokkan per subbab.
+// "bagian" = baris yang dapat ditinjau (punya pasangan Isian).
+// Catatan dipisah: komentar nyata (ditonjolkan) vs catatan sistem yang berulang (diringkas).
 const SEV_REVIEW = { 'Perlu revisi': 4, 'Perlu diskusi': 3, 'Menunggu persetujuan': 2, '': 1, 'ACC': 0 };
+// Penanda komentar yang berasal dari Google Docs (disisipkan importer komentar).
+export const GDOCS_MARK = '〔Komentar dari Google Docs〕';
+const bersihNote = (t) => String(t || '').split(GDOCS_MARK).join('').trim();
+const normNote = (t) => bersihNote(t).toLowerCase().replace(/\s+/g, ' ').trim();
+
 export function rekapStatusBab(rows, tree) {
   const byId = {};
   (rows || []).forEach((r) => { byId[r.id] = r; });
@@ -87,22 +93,36 @@ export function rekapStatusBab(rows, tree) {
     });
     const total = babRows.length;
     const verdict = total === 0 ? 'kosong' : (c.acc === total ? 'acc' : (c.belum === total ? 'belum' : 'proses'));
-    const grup = [];
-    (bab.children || []).forEach((sub) => {
-      const subRows = ambil(sub.ids);
-      if (!subRows.length) return;
-      let sev = -1, tag = 'ACC';
-      const poin = [];
-      subRows.forEach((r) => {
-        const s = r.statusReview || '';
-        const sv = (s in SEV_REVIEW) ? SEV_REVIEW[s] : 1;
-        if (sv > sev) { sev = sv; tag = s; }
-        const txt = String(r.catatanIsian || '').trim();
-        if (txt) poin.push({ text: txt, status: s });
-      });
-      const adaPerhatian = subRows.some((r) => (r.statusReview || '') !== 'ACC');
-      if (poin.length || adaPerhatian) grup.push({ key: sub.key, label: sub.label, tag: tag, poin: poin });
+
+    // Subbab tiap baris (untuk judul kartu komentar) + navigasi.
+    const subById = {};
+    (bab.children || []).forEach((sub) => ambil(sub.ids).forEach((r) => { if (!subById[r.id]) subById[r.id] = sub; }));
+
+    // Kumpulkan catatan lalu dedup berdasarkan isi teks.
+    const peta = {};
+    babRows.forEach((r) => {
+      const raw = String(r.catatanIsian || '').trim();
+      if (!raw) return;
+      const key = normNote(raw);
+      if (!key) return;
+      if (!peta[key]) {
+        const docs = raw.includes(GDOCS_MARK);
+        let author = '';
+        if (docs) { const m = bersihNote(raw).match(/\(([^)]{2,60})\)\s*$/); if (m) author = m[1].trim(); }
+        const sub = subById[r.id];
+        peta[key] = { text: bersihNote(raw), count: 0, docs: docs, author: author, sub: sub ? sub.label : '', subKey: sub ? sub.key : bab.key, status: '', sev: -1 };
+      }
+      const p = peta[key];
+      p.count++;
+      const sv = (r.statusReview || '') in SEV_REVIEW ? SEV_REVIEW[r.statusReview || ''] : 1;
+      if (sv > p.sev) { p.sev = sv; p.status = r.statusReview || ''; }
     });
-    return { key: bab.key, label: bab.label, total: total, acc: c.acc, revisi: c.revisi, diskusi: c.diskusi, menunggu: c.menunggu, belum: c.belum, verdict: verdict, grup: grup };
+    const semua = Object.values(peta);
+    // Komentar nyata: dari Google Docs, atau catatan unik (tidak berulang banyak). Sisanya = catatan sistem ringkas.
+    const komentar = semua.filter((p) => p.docs || p.count < 3)
+      .sort((a, b) => (Number(b.docs) - Number(a.docs)) || (b.sev - a.sev) || (a.count - b.count));
+    const sistem = semua.filter((p) => !p.docs && p.count >= 3).sort((a, b) => b.count - a.count);
+
+    return { key: bab.key, label: bab.label, total: total, acc: c.acc, revisi: c.revisi, diskusi: c.diskusi, menunggu: c.menunggu, belum: c.belum, verdict: verdict, komentar: komentar, sistem: sistem };
   });
 }

@@ -9,12 +9,25 @@ const FASE = [
   { no: '4', nama: 'Menuju Akreditasi', modul: ['proses'] }
 ];
 
+// Kebutuhan (dokumen/bukti) tiap tahap besar. Masih template awal — dapat dipindah ke Sheet.
+const KEBUTUHAN = [
+  { tahap: 'Tahap 1 — Sistem Mutu (SPMI)', butir: ['Naskah SPMI (Bab I–V) tersusun', 'Daftar POS & formulir (kode S-xxx)', 'Review naskah selesai (status ACC)', 'Pengesahan SK Kepala Lembaga'] },
+  { tahap: 'Tahap 2 — Siklus Mutu (PPEPP)', butir: ['Jadwal siklus PPEPP tahunan', 'Log bukti pelaksanaan tiap standar', 'Notulen rapat tinjauan mutu', 'Laporan Audit Mutu Internal (1×/tahun)'] },
+  { tahap: 'Tahap 3 — Evaluasi Diri (EDLK)', butir: ['Instrumen EDLK terisi per komponen', 'Checklist dokumen pendukung lengkap', 'Skor mandiri & catatan perbaikan', 'Bukti unggah per butir'] },
+  { tahap: 'Tahap 4 — EKLK → Akreditasi', butir: ['Instrumen EKLK terisi + bukti', 'Data lembaga & legalitas terkini', 'Rekap hasil EDLK & tindak lanjut', 'Berkas siap diajukan ke akreditasi'] }
+];
+
 export default function AlurMap({ modul, onPilih }) {
   const byId = {};
   modul.forEach((m) => { byId[m.id] = m; });
 
   return (
     <div className="body">
+      <div className="bar bar-sync" style={{ marginBottom: 14 }}>
+        <span>🔓 <b>Kunci urutan dibuka.</b> Urutan ideal tetap SPMI → EKLK → akreditasi, tetapi dokumen tiap tahap
+          boleh disiapkan paralel — tidak harus menunggu SPMI selesai.</span>
+      </div>
+
       <div className="panel" style={{ marginBottom: 14 }}>
         <div className="ph">Alur kerja garis besar <span className="mt">klik kotak untuk membuka modulnya</span></div>
         <div className="pb">
@@ -34,9 +47,9 @@ export default function AlurMap({ modul, onPilih }) {
                       const wDone = pr.total ? Math.round(pr.selesai / pr.total * 100) : 0;
                       const wProg = pr.total ? Math.round(pr.berjalan / pr.total * 100) : 0;
                       return (
-                        <button key={id} className={'node ' + warna + (m.terkunci ? ' terkunci' : '')}
-                          onClick={() => onPilih('modul-' + id)} title={m.terkunci ? 'Prasyarat belum cukup' : 'Buka ' + m.nama}>
-                          <div className="node-nama">{m.terkunci ? '🔒 ' : ''}{m.nama}</div>
+                        <button key={id} className={'node ' + warna}
+                          onClick={() => onPilih('modul-' + id)} title={'Buka ' + m.nama}>
+                          <div className="node-nama">{m.nama}</div>
                           <div className="node-bar"><span className="nb done" style={{ width: wDone + '%' }} /><span className="nb prog" style={{ width: wProg + '%' }} /></div>
                           <div className="node-pct">{pct}% selesai{pr.berjalan ? ` · ${pr.berjalan} berjalan` : ''} · {pr.selesai}/{pr.total}</div>
                         </button>
@@ -52,20 +65,28 @@ export default function AlurMap({ modul, onPilih }) {
             <span><i className="dotn n-g" /> ≥80% siap</span>
             <span><i className="dotn n-a" /> 40–79%</span>
             <span><i className="dotn n-r" /> &lt;40%</span>
-            <span>🔒 terkunci (prasyarat belum cukup) — kunci lunak, SA dapat membuka</span>
+            <span>🔓 semua tahap terbuka — bisa dikerjakan paralel</span>
           </div>
         </div>
       </div>
+
       <div className="panel">
-        <div className="ph">Urutan yang disarankan</div>
+        <div className="ph">Kebutuhan tiap tahap <span className="mt">dokumen/bukti yang perlu disiapkan</span></div>
         <div className="pb">
-          <ol className="urut">
-            <li>Putuskan hal di <b>Tugas</b> fase 0 (K-01…K-09).</li>
-            <li>Perbaiki <b>Naskah SPMI</b> & lengkapi <b>Registri Form</b>.</li>
-            <li>Jalankan <b>Siklus Mutu</b> dan catat <b>Log Bukti</b>.</li>
-            <li>Isi <b>Evaluasi Diri</b>, <b>Checklist Dokumen</b>, dan <b>Instrumen EKLK</b>.</li>
-            <li>Ikuti <b>Proses EKLK</b> lalu menuju akreditasi.</li>
-          </ol>
+          <div className="kebutuhan-grid">
+            {KEBUTUHAN.map((k) => (
+              <div className="kebutuhan-card" key={k.tahap}>
+                <div className="kebutuhan-h">{k.tahap}</div>
+                <ul className="kebutuhan-list">
+                  {k.butir.map((b) => <li key={b}>{b}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="bar bar-info" style={{ marginTop: 12 }}>
+            <span>Daftar kebutuhan ini masih <b>template awal</b> — akan disesuaikan dengan instrumen EKLK &amp; peraturan,
+              dan dapat dipindah ke Sheet agar bisa dicentang statusnya.</span>
+          </div>
         </div>
       </div>
     </div>

@@ -43,7 +43,7 @@ export default function Sidebar({ modul, spmiTree, spmiSelected, bagian, aktif, 
             </React.Fragment>;
           }
           return <button key={m.id} className={'ni' + (aktif === m.id ? ' act' : '')} aria-current={aktif === m.id ? 'page' : undefined} onClick={() => onPilih(m.id)} title={m.nama}>
-            <span className="ic">{IKON[m.ikon] || m.ikon || '•'}</span><span className="ni-l">{m.terkunci ? '🔒 ' : ''}{m.nama}</span>{m._jml != null && <span className="bdg">{m._jml}</span>}
+            <span className="ic">{IKON[m.ikon] || m.ikon || '•'}</span><span className="ni-l">{m.nama}</span>{m._jml != null && <span className="bdg">{m._jml}</span>}
           </button>;
         })}
         {!visible.length && <p className="section-empty">{items.length ? 'Tidak ada rincian yang cocok.' : 'Belum ada menu yang tersedia untuk akun ini.'}</p>}
