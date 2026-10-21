@@ -635,3 +635,31 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .ss-sysnote b{color:#5a6378;}
 .ss-sys-i{flex:0 0 16px;}
 @media(max-width:800px){.ss-scroll{max-height:none;overflow:visible;}.ss-open{margin-left:0;}}
+
+/* ===== Freeze header tabel referensi (kotak scroll sendiri) ===== */
+.ref-scroll{max-height:calc(100vh - 300px);min-height:200px;overflow:auto;position:relative;}
+@media(max-width:800px){.ref-scroll{max-height:none;overflow:visible;}}
+
+/* ===== Drawer referensi: ubah status + tambah link dokumen ===== */
+.ref-statusrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 2px;}
+.ref-statusrow .k{color:#7a8296;width:110px;flex:0 0 110px;font-size:12px;}
+.ref-ddwrap{position:relative;margin-left:auto;}
+.ref-btn{font-size:11px;font-weight:700;color:#36589c;background:#fff;border:1px solid #cfe0f5;border-radius:7px;padding:5px 11px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
+.ref-btn:hover{background:#f0f6ff;}
+.ref-btn.pri{background:var(--blue);border-color:var(--blue);color:#fff;}
+.ref-btn:disabled{opacity:.6;cursor:default;}
+.ref-dd{position:absolute;right:0;top:34px;z-index:30;background:#fff;border:1px solid var(--bd);border-radius:9px;box-shadow:0 8px 20px rgba(16,22,60,.18);padding:5px;width:180px;}
+.ref-dd-i{padding:7px 10px;border-radius:6px;font-size:12px;color:#44516d;cursor:pointer;}
+.ref-dd-i:hover{background:#f2f5fc;}
+.ref-dd-i.on{background:#e8edfb;color:var(--navy);font-weight:700;}
+.ref-addbox{border:1px solid var(--bd);border-radius:9px;padding:10px;margin-top:8px;background:#fafbfe;}
+.ref-addlbl{font-size:11px;font-weight:700;color:#55607e;margin-bottom:6px;}
+.ref-addrow{display:flex;gap:7px;}
+.ref-addinp{flex:1;height:32px;border:1px solid #cdd7ed;border-radius:7px;background:#fff;font:inherit;font-size:11.5px;color:#28354e;padding:0 10px;}
+
+/* ===== Naskah SPMI: header ringkas sejajar + bar BAB menempel ===== */
+.spmi-head-actions{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.spmi-head-actions .spmi-prev-next{display:flex;gap:3px;}
+.spmi-reader-compact .spmi-loaded{display:none;}
+.spmi-reader-compact #spmi-heading-detail{display:none;}
+.spmi-comparison .spmi-bab-group td{position:sticky;top:34px;z-index:2;background:linear-gradient(90deg,#20306e,#28397f);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.3px;padding:8px 14px;box-shadow:0 3px 7px rgba(20,28,60,.16);}

@@ -49,6 +49,7 @@ export const api = {
   pengguna: () => get('pengguna'),
   login: (nama, pin) => post('login', { nama, pin }),
   update: (b) => post('update', b),
+  simpanRef: (b) => post('simpanRef', b),
   create: (b) => post('create', b),
   archive: (b) => post('archive', b),
   perbaruiDraft: (b) => post('perbaruiDraft', b),

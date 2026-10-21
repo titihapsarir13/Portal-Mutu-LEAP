@@ -36,13 +36,14 @@ export default function App() {
   const [halamanTerakhir, setHalamanTerakhir] = useState({});
   const [toast, setToast] = useState(null);
   const [gantiManual, setGantiManual] = useState(false);
+  const [spySel, setSpySel] = useState(null); // highlight sementara (scroll-spy) di pohon Naskah SPMI
 
   function masuk(m) { try { localStorage.setItem(ME_KEY, JSON.stringify(m)); } catch (e) {} setMe(m); }
   function keluar() { try { localStorage.removeItem(ME_KEY); } catch (e) {} setMe(null); }
   function tampilToast(pesan, jenis) { setToast({ pesan, jenis }); setTimeout(() => setToast(null), 3500); }
   function toggleCollapse() { setCollapsed((c) => { const n = !c; try { localStorage.setItem(COLL_KEY, n ? '1' : '0'); } catch (e) {} return n; }); }
 
-  useEffect(() => { setDrawer(false); }, [hash]);
+  useEffect(() => { setDrawer(false); setSpySel(null); }, [hash]);
 
   const data = portal.data;
   const isSA = !!(me && me.peran === 'SA');
@@ -108,7 +109,7 @@ export default function App() {
       <MainNav app={data && data.app} aktif={bagian} onPilih={pilihUtama} onMundur={mundur} onMaju={maju} onToggleSidebar={toggleSidebar} />
       <div className="workspace">
       {drawer && <div className="scrim" onClick={() => setDrawer(false)} />}
-      <Sidebar key={bagian} app={data && data.app} modul={modulMenu} spmiTree={spmiTree} spmiSelected={spmiSelected} bagian={bagian} aktif={hash} isSA={isSA} collapsed={collapsed}
+      <Sidebar key={bagian} app={data && data.app} modul={modulMenu} spmiTree={spmiTree} spmiSelected={spySel || spmiSelected} bagian={bagian} aktif={hash} isSA={isSA} collapsed={collapsed}
         onPilih={(id) => keHalaman(id)} drawer={drawer} onTutup={() => setDrawer(false)}
         onToggleCollapse={toggleCollapse} />
       <div className="main">
@@ -123,14 +124,14 @@ export default function App() {
             {!api.sudahDiatur() && <div className="hint">API_URL belum diatur di config.js. Lihat PANDUAN langkah G.</div>}</div></div>
         )}
 
-        <div className="spmi-host" hidden={halamanDasar !== 'modul-naskah'}><SpmiNaskah spmi={spmi} tree={spmiTree} selected={spmiSelected} filterAwal={filterDariHash(hash)} onPilih={keHalaman} onToast={tampilToast} /></div>
+        <div className="spmi-host" hidden={halamanDasar !== 'modul-naskah'}><SpmiNaskah spmi={spmi} tree={spmiTree} selected={spmiSelected} filterAwal={filterDariHash(hash)} onPilih={keHalaman} onToast={tampilToast} onSpy={setSpySel} /></div>
         {hash === 'status-spmi' && <StatusSpmi spmi={spmi} tree={spmiTree} onPilih={keHalaman} />}
         {hash === 'beranda' && <Beranda app={data && data.app} me={me} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'dashboard' && <Dashboard data={data} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'alur' && <AlurMap modul={modulTampil} onPilih={(id) => keHalaman(id)} />}
         {data && hash === 'dasar-hukum' && <DasarHukum data={data} onPilih={(id) => keHalaman(id)} />}
-        {data && hash === 'syarat' && <RefChecklist data={data} moduleId="ref_syarat" title="Syarat & Keputusan" sub="Daftar syarat administratif & legalitas — klik butir untuk rincian & dokumen pendukung." itemHeader="Syarat / Dokumen" />}
-        {data && hash === 'akreditasi' && <RefChecklist data={data} moduleId="ref_akre" title="Akreditasi" sub="Butir kesiapan menuju akreditasi — klik butir untuk rincian & dokumen pendukung." itemHeader="Butir akreditasi" />}
+        {data && hash === 'syarat' && <RefChecklist data={data} moduleId="ref_syarat" title="Syarat & Keputusan" sub="Daftar syarat administratif & legalitas — klik butir untuk rincian & dokumen pendukung." itemHeader="Syarat / Dokumen" me={me} onPatch={portal.patchSel} onToast={tampilToast} />}
+        {data && hash === 'akreditasi' && <RefChecklist data={data} moduleId="ref_akre" title="Akreditasi" sub="Butir kesiapan menuju akreditasi — klik butir untuk rincian & dokumen pendukung." itemHeader="Butir akreditasi" me={me} onPatch={portal.patchSel} onToast={tampilToast} />}
         {data && hash === 'admin' && (isSA
           ? <Admin me={me} onToast={tampilToast} onRefresh={portal.refresh} />
           : <div className="body"><div className="galat"><b>Halaman khusus Super Admin.</b></div></div>)}

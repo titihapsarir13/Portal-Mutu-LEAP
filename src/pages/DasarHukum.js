@@ -37,6 +37,7 @@ export default function DasarHukum({ data, onPilih }) {
           <div className="panel"><div className="ref-empty">Data regulasi belum dimuat. Coba muat ulang portal.</div></div>
         ) : (
           <div className="panel ref-listpanel">
+            <div className="ref-scroll">
             <table className="ref-table">
               <colgroup><col style={{ width: '13%' }} /><col /><col style={{ width: '34%' }} /></colgroup>
               <thead><tr><th>Kode</th><th>Peraturan</th><th>Kesimpulan / relevansi untuk LEAP</th></tr></thead>
@@ -52,6 +53,7 @@ export default function DasarHukum({ data, onPilih }) {
                 {!tampil.length && <tr><td colSpan={3} className="ref-empty">Tidak ada peraturan cocok dengan pencarian.</td></tr>}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>
