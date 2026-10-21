@@ -53,7 +53,7 @@ export default function StatusSpmi({ spmi, tree, onPilih }) {
               ].filter(([, n]) => n > 0);
               const adaKomentar = b.komentar.length > 0;
               return <tr key={b.key}>
-                <td>
+                <td className="ss-bab-cell">
                   <span className="ss-bab" role="link" tabIndex={0} onClick={() => onPilih(routeSpmi(b.key))}
                     onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(b.key)); }}>{b.label}</span>
                   <div className="ss-pills">

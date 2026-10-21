@@ -94,10 +94,6 @@ export function rekapStatusBab(rows, tree) {
     const total = babRows.length;
     const verdict = total === 0 ? 'kosong' : (c.acc === total ? 'acc' : (c.belum === total ? 'belum' : 'proses'));
 
-    // Subbab tiap baris (untuk judul kartu komentar) + navigasi.
-    const subById = {};
-    (bab.children || []).forEach((sub) => ambil(sub.ids).forEach((r) => { if (!subById[r.id]) subById[r.id] = sub; }));
-
     // Kumpulkan catatan lalu dedup berdasarkan isi teks.
     const peta = {};
     babRows.forEach((r) => {
@@ -109,8 +105,10 @@ export function rekapStatusBab(rows, tree) {
         const docs = raw.includes(GDOCS_MARK);
         let author = '';
         if (docs) { const m = bersihNote(raw).match(/\(([^)]{2,60})\)\s*$/); if (m) author = m[1].trim(); }
-        const sub = subById[r.id];
-        peta[key] = { text: bersihNote(raw), count: 0, docs: docs, author: author, sub: sub ? sub.label : '', subKey: sub ? sub.key : bab.key, status: '', sev: -1 };
+        // Lokasi spesifik komentar: jalur setelah BAB (subbab › bagian › …), bukan sekadar subbab.
+        const path = jalurBagian(r);
+        const spesifik = path.slice(1).join(' › ') || bab.label;
+        peta[key] = { text: bersihNote(raw), count: 0, docs: docs, author: author, sub: spesifik, subKey: nodeKey(path), status: '', sev: -1 };
       }
       const p = peta[key];
       p.count++;
