@@ -54,11 +54,13 @@ export default function StatusSpmi({ spmi, tree, onPilih }) {
               const adaKomentar = b.komentar.length > 0;
               return <tr key={b.key}>
                 <td className="ss-bab-cell">
-                  <span className="ss-bab" role="link" tabIndex={0} onClick={() => onPilih(routeSpmi(b.key))}
-                    onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(b.key)); }}>{b.label}</span>
-                  <div className="ss-pills">
-                    <span className={'ss-verdict ' + v.cls}>{b.verdict === 'kosong' ? '—' : v.teks}</span>
-                    {b.total > 0 && <span className="ss-pill-sub">{b.acc}/{b.total} ACC</span>}
+                  <div className="ss-bab-inner">
+                    <span className="ss-bab" role="link" tabIndex={0} onClick={() => onPilih(routeSpmi(b.key))}
+                      onKeyDown={(e) => { if (e.key === 'Enter') onPilih(routeSpmi(b.key)); }}>{b.label}</span>
+                    <div className="ss-pills">
+                      <span className={'ss-verdict ' + v.cls}>{b.verdict === 'kosong' ? '—' : v.teks}</span>
+                      {b.total > 0 && <span className="ss-pill-sub">{b.acc}/{b.total} ACC</span>}
+                    </div>
                   </div>
                 </td>
                 <td>

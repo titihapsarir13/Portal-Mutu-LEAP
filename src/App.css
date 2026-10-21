@@ -634,9 +634,10 @@ table.matriks th:first-child,table.matriks td:first-child{text-align:left}
 .ss-sysnote{display:flex;gap:8px;align-items:flex-start;font-size:11px;color:#7e8798;background:#f4f6fa;border:1px dashed #d7deea;border-radius:8px;padding:7px 10px;margin-top:6px;line-height:1.5;}
 .ss-sysnote b{color:#5a6378;}
 .ss-sys-i{flex:0 0 16px;}
-/* Nama BAB tetap terlihat (menempel) saat sel catatan tinggi di-scroll */
-.ss-table td.ss-bab-cell{position:sticky;top:38px;z-index:2;background:#fff;align-self:flex-start;}
-@media(max-width:800px){.ss-scroll{max-height:none;overflow:visible;}.ss-open{margin-left:0;}.ss-table td.ss-bab-cell{position:static;}}
+/* Nama BAB tetap terlihat sepanjang BAB: div sticky di DALAM sel (bukan sel-nya). */
+.ss-table td.ss-bab-cell{vertical-align:top;}
+.ss-bab-inner{position:sticky;top:36px;z-index:2;background:#fff;padding-bottom:6px;}
+@media(max-width:800px){.ss-scroll{max-height:none;overflow:visible;}.ss-open{margin-left:0;}.ss-bab-inner{position:static;}}
 
 /* ===== Freeze header tabel referensi (kotak scroll sendiri) ===== */
 .ref-scroll{max-height:calc(100vh - 300px);min-height:200px;overflow:auto;position:relative;}
